@@ -1,0 +1,654 @@
+{
+  "nodes": [
+    {
+      "id": "src/screens/MakeRoom/MakeRoom.tsx",
+      "label": "MakeRoom",
+      "routes": [
+        "/"
+      ],
+      "dataModelId": "357:17077",
+      "isRoot": true
+    },
+    {
+      "id": "src/screens/Give/GiveLanding.tsx",
+      "label": "GiveLanding",
+      "routes": [
+        "/give"
+      ]
+    },
+    {
+      "id": "src/screens/Give/IndividualGive.tsx",
+      "label": "IndividualGive",
+      "routes": [
+        "/give/individual"
+      ]
+    },
+    {
+      "id": "src/screens/Give/GroupCreate.tsx",
+      "label": "GroupCreate",
+      "routes": [
+        "/give/group/new"
+      ]
+    },
+    {
+      "id": "src/screens/Give/GroupHub.tsx",
+      "label": "GroupHub",
+      "routes": [
+        "/give/group/:groupId"
+      ]
+    },
+    {
+      "id": "src/screens/Give/GroupJoin.tsx",
+      "label": "GroupJoin",
+      "routes": [
+        "/give/group/:groupId/join"
+      ]
+    },
+    {
+      "id": "src/screens/Give/GroupConfirm.tsx",
+      "label": "GroupConfirm",
+      "routes": [
+        "/give/group/confirm/:token"
+      ]
+    },
+    {
+      "id": "src/screens/Give/GroupMemberPledge.tsx",
+      "label": "GroupMemberPledge",
+      "routes": [
+        "/give/group/member/:memberId/pledge"
+      ]
+    },
+    {
+      "id": "src/screens/Give/PledgeSchedule.tsx",
+      "label": "PledgeSchedule",
+      "routes": [
+        "/give/schedule/:pledgeId"
+      ]
+    },
+    {
+      "id": "src/screens/Give/MyGiving.tsx",
+      "label": "MyGiving",
+      "routes": [
+        "/give/my"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "src/screens/MakeRoom/MakeRoom.tsx:82:18-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/MakeRoom/MakeRoom.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<Link to=\"/give\">GIVE</Link>",
+          "line": 82,
+          "endLine": 82,
+          "column": 18,
+          "endColumn": 46,
+          "sourceFile": "src/screens/MakeRoom/MakeRoom.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/MakeRoom/MakeRoom.tsx:89:18-to-src/screens/Give/MyGiving.tsx",
+      "source": "src/screens/MakeRoom/MakeRoom.tsx",
+      "target": "src/screens/Give/MyGiving.tsx",
+      "data": {
+        "viaRoute": "/give/my",
+        "trigger": {
+          "element": "<Link to=\"/give/my\">TRACK GIVING</Link>",
+          "line": 89,
+          "endLine": 89,
+          "column": 18,
+          "endColumn": 57,
+          "sourceFile": "src/screens/MakeRoom/MakeRoom.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GiveLanding.tsx:33:8-to-src/screens/Give/IndividualGive.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/Give/IndividualGive.tsx",
+      "data": {
+        "viaRoute": "/give/individual",
+        "trigger": {
+          "element": "<Link to=\"/give/individual\" className={primaryButtonClass + \" text-center\"}>\n          Give as an individual\n        </Link>",
+          "line": 33,
+          "endLine": 35,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/GiveLanding.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GiveLanding.tsx:36:8-to-src/screens/Give/GroupCreate.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/Give/GroupCreate.tsx",
+      "data": {
+        "viaRoute": "/give/group/new",
+        "trigger": {
+          "element": "<Link to=\"/give/group/new\" className={secondaryButtonClass + \" text-center\"}>\n          Give as a group\n        </Link>",
+          "line": 36,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/GiveLanding.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GiveLanding.tsx:43:8-to-src/screens/Give/MyGiving.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/Give/MyGiving.tsx",
+      "data": {
+        "viaRoute": "/give/my",
+        "trigger": {
+          "element": "<Link to=\"/give/my\" className=\"font-semibold text-[#fa400f] hover:underline\">\n          Track your giving\n        </Link>",
+          "line": 43,
+          "endLine": 45,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/GiveLanding.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/IndividualGive.tsx:79:4-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/IndividualGive.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell\n      title=\"Give as an individual\"\n      subtitle=\"1 unit = ₦1,000,000. You can give any number of units.\"\n      backTo=\"/give\"\n    >\n      <form onSubmit={handleContinue} className=\"flex flex-col gap-5\">\n        <div>\n          <label className={labelClass} htmlFor=\"units\">\n            Number of units\n          </label>\n          <input\n            id=\"units\"\n            type=\"number\"\n            min={1}\n            step={1}\n            className={inputClass}\n            value={unitsStr}\n            onChange={(e) => setUnitsStr(e.target.value)}\n            required\n          />\n          <p className=\"mt-1 text-sm font-semibold text-[#fa400f]\">\n            = {formatNaira(amountNaira)}\n          </p>\n        </div>\n\n        <div>\n          <label className={labelClass} htmlFor=\"name\">\n            Full name\n          </label>\n          <input\n            id=\"name\"\n            type=\"text\"\n            className={inputClass}\n            value={donorName}\n            onChange={(e) => setDonorName(e.target.value)}\n            required\n          />\n        </div>\n\n        <div>\n          <label className={labelClass} htmlFor=\"email\">\n            Email\n          </label>\n          <input\n            id=\"email\"\n            type=\"email\"\n            className={inputClass}\n            value={donorEmail}\n            onChange={(e) => setDonorEmail(e.target.value)}\n            required\n          />\n        </div>\n\n        <div>\n          <label className={labelClass} htmlFor=\"phone\">\n            Phone (optional)\n          </label>\n          <input\n            id=\"phone\"\n            type=\"tel\"\n            className={inputClass}\n            value={donorPhone}\n            onChange={(e) => setDonorPhone(e.target.value)}\n          />\n        </div>\n\n        {error && <p className={errorTextClass}>{error}</p>}\n\n        <button type=\"submit\" className={primaryButtonClass}>\n          Continue\n        </button>\n      </form>\n    </GiveShell>",
+          "line": 79,
+          "endLine": 151,
+          "column": 4,
+          "endColumn": 16,
+          "sourceFile": "src/screens/Give/IndividualGive.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GroupCreate.tsx:57:4-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/GroupCreate.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell\n      title=\"Start a group\"\n      subtitle=\"Commit to a total, then invite your group to cover it together.\"\n      backTo=\"/give\"\n    >\n      <form onSubmit={handleSubmit} className=\"flex flex-col gap-5\">\n        <div>\n          <label className={labelClass} htmlFor=\"totalUnits\">\n            Total units your group is committing to\n          </label>\n          <input\n            id=\"totalUnits\"\n            type=\"number\"\n            min={1}\n            step={1}\n            className={inputClass}\n            value={totalUnitsStr}\n            onChange={(e) => setTotalUnitsStr(e.target.value)}\n            required\n          />\n          <p className=\"mt-1 text-sm font-semibold text-[#fa400f]\">\n            = {formatNaira(unitsToNaira(totalUnits))}\n          </p>\n        </div>\n\n        <div>\n          <label className={labelClass} htmlFor=\"deadline\">\n            Group deadline\n          </label>\n          <input\n            id=\"deadline\"\n            type=\"date\"\n            className={inputClass}\n            min={todayIso()}\n            max={maxDeadlineIso()}\n            value={deadline}\n            onChange={(e) => setDeadline(e.target.value)}\n            required\n          />\n          <p className={helpTextClass}>\n            Members will choose their own deadline within this window.\n          </p>\n        </div>\n\n        <div>\n          <label className={labelClass} htmlFor=\"organizerName\">\n            Your name\n          </label>\n          <input\n            id=\"organizerName\"\n            type=\"text\"\n            className={inputClass}\n            value={organizerName}\n            onChange={(e) => setOrganizerName(e.target.value)}\n            required\n          />\n        </div>\n\n        <div>\n          <label className={labelClass} htmlFor=\"organizerEmail\">\n            Your email\n          </label>\n          <input\n            id=\"organizerEmail\"\n            type=\"email\"\n            className={inputClass}\n            value={organizerEmail}\n            onChange={(e) => setOrganizerEmail(e.target.value)}\n            required\n          />\n        </div>\n\n        {error && <p className={errorTextClass}>{error}</p>}\n\n        <button type=\"submit\" className={primaryButtonClass} disabled={submitting}>\n          {submitting ? \"Creating…\" : \"Create group & get invite link\"}\n        </button>\n      </form>\n    </GiveShell>",
+          "line": 57,
+          "endLine": 135,
+          "column": 4,
+          "endColumn": 16,
+          "sourceFile": "src/screens/Give/GroupCreate.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GroupHub.tsx:46:6-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/GroupHub.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell title=\"Group not found\" backTo=\"/give\">\n        <p className=\"text-slate-500\">This group link looks invalid.</p>\n      </GiveShell>",
+          "line": 46,
+          "endLine": 48,
+          "column": 6,
+          "endColumn": 18,
+          "sourceFile": "src/screens/Give/GroupHub.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GroupHub.tsx:71:4-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/GroupHub.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell\n      title={`${group.organizerName}'s group`}\n      subtitle={`Deadline: ${formatDate(group.deadline)}`}\n      backTo=\"/give\"\n    >\n      <div className=\"mb-6\">\n        <div className=\"h-3 w-full overflow-hidden rounded-full bg-slate-200\">\n          <div\n            className=\"h-full rounded-full bg-[#fa400f] transition-all\"\n            style={{ width: `${pct}%` }}\n          />\n        </div>\n        <div className=\"mt-2 flex items-center justify-between text-sm font-semibold text-slate-600\">\n          <span>{formatNaira(committedNaira)} committed</span>\n          <span>{formatNaira(totalGoalNaira)} goal</span>\n        </div>\n        <p className=\"mt-1 text-xs text-slate-400\">\n          {formatNaira(paidNaira)} actually paid so far\n        </p>\n      </div>\n\n      <div className=\"mb-6 rounded-xl border border-dashed border-slate-300 p-4\">\n        <p className=\"text-sm font-semibold text-slate-700\">Invite link</p>\n        <div className=\"mt-2 flex items-center gap-2\">\n          <input\n            readOnly\n            value={inviteUrl}\n            className=\"w-full truncate rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600\"\n          />\n          <button\n            type=\"button\"\n            onClick={copyInviteLink}\n            className=\"shrink-0 rounded-lg bg-[#1c2b3a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#132029]\"\n          >\n            {copied ? \"Copied!\" : \"Copy\"}\n          </button>\n        </div>\n      </div>\n\n      <h2 className=\"mb-3 text-sm font-bold uppercase tracking-wide text-slate-400\">\n        Who's in\n      </h2>\n      <ul className=\"mb-6 flex flex-col gap-2\">\n        {members.length === 0 && (\n          <li className=\"text-sm text-slate-400\">\n            No one has joined yet — share the invite link above.\n          </li>\n        )}\n        {members.map(({ member, pledge }) => (\n          <li\n            key={member.id}\n            className=\"flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3\"\n          >\n            <div>\n              <p className=\"text-sm font-semibold text-slate-700\">{member.name}</p>\n              <p\n                className={`text-xs font-semibold ${\n                  member.status === \"confirmed\" ? \"text-emerald-600\" : \"text-amber-500\"\n                }`}\n              >\n                {member.status === \"confirmed\" ? \"Confirmed\" : \"Pending confirmation\"}\n              </p>\n            </div>\n            <div className=\"text-right\">\n              <p className=\"text-sm font-bold text-slate-900\">\n                {formatNaira(member.committedAmountNaira)}\n              </p>\n              <p className=\"text-xs text-slate-400\">\n                {formatNaira(pledge?.amountPaid ?? 0)} paid\n              </p>\n            </div>\n          </li>\n        ))}\n      </ul>\n\n      <Link to={`/give/group/${group.id}/join`} className={primaryButtonClass + \" block text-center\"}>\n        Join this group\n      </Link>\n    </GiveShell>",
+          "line": 71,
+          "endLine": 149,
+          "column": 4,
+          "endColumn": 16,
+          "sourceFile": "src/screens/Give/GroupHub.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GroupConfirm.tsx:22:6-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/GroupConfirm.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell title=\"Confirmation link invalid\" backTo=\"/give\">\n        <p className=\"text-sm text-slate-500\">{error}</p>\n      </GiveShell>",
+          "line": 22,
+          "endLine": 24,
+          "column": 6,
+          "endColumn": 18,
+          "sourceFile": "src/screens/Give/GroupConfirm.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/GroupMemberPledge.tsx:37:6-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/GroupMemberPledge.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell title=\"Not confirmed yet\" backTo=\"/give\">\n        <p className=\"text-sm text-slate-500\">\n          Please confirm your pledge via the link in your email first.\n        </p>\n      </GiveShell>",
+          "line": 37,
+          "endLine": 41,
+          "column": 6,
+          "endColumn": 18,
+          "sourceFile": "src/screens/Give/GroupMemberPledge.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/PledgeSchedule.tsx:27:6-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/PledgeSchedule.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell title=\"Pledge not found\" backTo=\"/give\">\n        <p className=\"text-slate-500\">\n          We couldn't find that pledge. It may have been an invalid link.\n        </p>\n      </GiveShell>",
+          "line": 27,
+          "endLine": 31,
+          "column": 6,
+          "endColumn": 18,
+          "sourceFile": "src/screens/Give/PledgeSchedule.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/PledgeSchedule.tsx:36:4-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/PledgeSchedule.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell\n      title=\"You're in 🎉\"\n      subtitle={`Thank you, ${pledge.donorName}. Here's your payment schedule.`}\n      backTo=\"/give\"\n      backLabel=\"Give again\"\n    >\n      <div className=\"mb-6 rounded-xl bg-slate-50 p-4\">\n        <div className=\"flex justify-between text-sm font-semibold text-slate-600\">\n          <span>Units</span>\n          <span>{pledge.units}</span>\n        </div>\n        <div className=\"mt-1 flex justify-between text-sm font-semibold text-slate-600\">\n          <span>Total pledged</span>\n          <span>{formatNaira(pledge.amountNaira)}</span>\n        </div>\n        <div className=\"mt-1 flex justify-between text-sm font-semibold text-slate-600\">\n          <span>Deadline</span>\n          <span>{formatDate(pledge.deadline)}</span>\n        </div>\n      </div>\n\n      <h2 className=\"mb-3 text-sm font-bold uppercase tracking-wide text-slate-400\">\n        Schedule\n      </h2>\n      <ul className=\"flex flex-col gap-2\">\n        {pledge.paymentPlan.installments.map((installment, idx) => (\n          <li\n            key={installment.id}\n            className=\"flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3\"\n          >\n            <div>\n              <p className=\"text-sm font-semibold text-slate-700\">\n                Payment {idx + 1}\n              </p>\n              <p className=\"text-xs text-slate-400\">\n                Due {formatDate(installment.dueDate)}\n              </p>\n            </div>\n            <div className=\"text-right\">\n              <p className=\"text-sm font-bold text-slate-900\">\n                {formatNaira(installment.amount)}\n              </p>\n              <p\n                className={`text-xs font-semibold ${\n                  installment.status === \"paid\"\n                    ? \"text-emerald-600\"\n                    : \"text-amber-500\"\n                }`}\n              >\n                {installment.status === \"paid\" ? \"Paid\" : \"Pending\"}\n              </p>\n            </div>\n          </li>\n        ))}\n      </ul>\n\n      <p className=\"mt-6 rounded-lg bg-amber-50 p-3 text-xs text-amber-700\">\n        Online payment collection isn't connected yet — please pay via bank\n        transfer below and keep your receipt. We'll mark each payment as\n        received.\n      </p>\n\n      <div className=\"mt-6\">\n        <BankTransferDetails />\n      </div>\n\n      {pledge.groupId && (\n        <Link\n          to={`/give/group/${pledge.groupId}`}\n          className=\"mt-4 block text-center text-sm font-semibold text-[#fa400f] hover:underline\"\n        >\n          View group progress →\n        </Link>\n      )}\n    </GiveShell>",
+          "line": 36,
+          "endLine": 110,
+          "column": 4,
+          "endColumn": 16,
+          "sourceFile": "src/screens/Give/PledgeSchedule.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/MyGiving.tsx:70:6-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/MyGiving.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell\n        title=\"Your giving\"\n        subtitle={lookedUpEmail}\n        backTo=\"/give\"\n      >\n        {loading && <p className=\"text-slate-500\">Loading…</p>}\n\n        {!loading && hasNothing && (\n          <p className=\"text-sm text-slate-500\">\n            We couldn't find any pledges for this email yet.\n          </p>\n        )}\n\n        {!loading && pledges.length > 0 && (\n          <div className=\"mb-6\">\n            <h2 className=\"mb-3 text-sm font-bold uppercase tracking-wide text-slate-400\">\n              Pledges\n            </h2>\n            <ul className=\"flex flex-col gap-2\">\n              {pledges.map((pledge) => (\n                <li key={pledge.id}>\n                  <Link\n                    to={`/give/schedule/${pledge.id}`}\n                    className=\"flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#fa400f]\"\n                  >\n                    <div>\n                      <p className=\"text-sm font-semibold text-slate-700\">\n                        {pledge.kind === \"group_member\" ? \"Group pledge\" : \"Individual pledge\"}\n                      </p>\n                      <p className=\"text-xs text-slate-400\">\n                        Deadline {formatDate(pledge.deadline)}\n                      </p>\n                    </div>\n                    <div className=\"text-right\">\n                      <p className=\"text-sm font-bold text-slate-900\">\n                        {formatNaira(pledge.amountNaira)}\n                      </p>\n                      <p className=\"text-xs text-slate-400\">\n                        {formatNaira(pledge.amountPaid)} paid\n                      </p>\n                    </div>\n                  </Link>\n                </li>\n              ))}\n            </ul>\n          </div>\n        )}\n\n        {!loading && membershipsWithoutPledge.length > 0 && (\n          <div className=\"mb-6\">\n            <h2 className=\"mb-3 text-sm font-bold uppercase tracking-wide text-slate-400\">\n              Groups you've joined\n            </h2>\n            <ul className=\"flex flex-col gap-2\">\n              {membershipsWithoutPledge.map((member) => (\n                <li key={member.id}>\n                  <Link\n                    to={\n                      member.status === \"confirmed\"\n                        ? `/give/group/member/${member.id}/pledge`\n                        : `/give/group/${member.groupId}`\n                    }\n                    className=\"flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#fa400f]\"\n                  >\n                    <div>\n                      <p className=\"text-sm font-semibold text-slate-700\">\n                        {formatNaira(member.committedAmountNaira)} commitment\n                      </p>\n                      <p\n                        className={`text-xs font-semibold ${\n                          member.status === \"confirmed\" ? \"text-emerald-600\" : \"text-amber-500\"\n                        }`}\n                      >\n                        {member.status === \"confirmed\"\n                          ? \"Confirmed — set up your payment plan\"\n                          : \"Pending confirmation\"}\n                      </p>\n                    </div>\n                    <span className=\"text-xs font-semibold text-[#fa400f]\">\n                      {member.status === \"confirmed\" ? \"Continue →\" : \"View group →\"}\n                    </span>\n                  </Link>\n                </li>\n              ))}\n            </ul>\n          </div>\n        )}\n\n        <button\n          type=\"button\"\n          onClick={useDifferentEmail}\n          className=\"text-sm font-semibold text-slate-500 hover:text-slate-700\"\n        >\n          Not you? Use a different email\n        </button>\n      </GiveShell>",
+          "line": 70,
+          "endLine": 165,
+          "column": 6,
+          "endColumn": 18,
+          "sourceFile": "src/screens/Give/MyGiving.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/MyGiving.tsx:170:4-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/MyGiving.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell\n      title=\"Access your giving\"\n      subtitle=\"Enter the email you used when you gave, and we'll pull up your pledges — no need to fill anything in again.\"\n      backTo=\"/give\"\n      centerText\n    >\n      <form onSubmit={handleSubmit} className=\"flex flex-col gap-5\">\n        <div>\n          <label className={labelClass} htmlFor=\"lookupEmail\">\n            Email\n          </label>\n          <input\n            id=\"lookupEmail\"\n            type=\"email\"\n            className={inputClass}\n            value={email}\n            onChange={(e) => setEmail(e.target.value)}\n            required\n          />\n        </div>\n\n        {error && <p className={errorTextClass}>{error}</p>}\n\n        <button type=\"submit\" className={primaryButtonClass} disabled={loading}>\n          {loading ? \"Looking…\" : \"Find my giving\"}\n        </button>\n      </form>\n    </GiveShell>",
+          "line": 170,
+          "endLine": 197,
+          "column": 4,
+          "endColumn": 16,
+          "sourceFile": "src/screens/Give/MyGiving.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    }
+  ]
+}
