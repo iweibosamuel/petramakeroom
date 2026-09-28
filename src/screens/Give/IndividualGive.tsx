@@ -5,6 +5,7 @@ import { nairaToUnits } from "../../lib/giving/format";
 import { rememberEmail } from "../../lib/giving/rememberedDonor";
 import { TIERS } from "../../lib/giving/tiers";
 import { GiveShell } from "./components/GiveShell";
+import { useFlowStep } from "./components/useFlowStep";
 import {
   AmountStep,
   DetailsStep,
@@ -17,7 +18,7 @@ import { PaymentPlanForm, type PaymentPlanFormResult } from "./components/Paymen
 export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Element => {
   const tier = TIERS[tierId];
   const navigate = useNavigate();
-  const [step, setStep] = useState<"amount" | "details" | "payment">("amount");
+  const [step, goTo, back] = useFlowStep<"amount" | "details" | "payment">("amount");
   const [amountNaira, setAmountNaira] = useState(0);
   const [details, setDetails] = useState<DonorDetails>(emptyDonorDetails);
 
@@ -40,7 +41,7 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
 
   if (step === "payment") {
     return (
-      <GiveShell title="When would you like to give?" onBack={() => setStep("details")}>
+      <GiveShell title="When would you like to give?" onBack={back}>
         <PaymentPlanForm
           totalAmountNaira={amountNaira}
           onSubmit={handlePaymentPlanSubmit}
@@ -54,10 +55,10 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
     return (
       <DetailsStep
         initial={details}
-        onBack={() => setStep("amount")}
+        onBack={back}
         onContinue={(next) => {
           setDetails(next);
-          setStep("payment");
+          goTo("payment");
         }}
       />
     );
@@ -74,7 +75,7 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
       backTo={`/give/${tier.slug}`}
       onContinue={(amount) => {
         setAmountNaira(amount);
-        setStep("details");
+        goTo("details");
       }}
     />
   );

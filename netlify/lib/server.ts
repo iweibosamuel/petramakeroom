@@ -32,12 +32,35 @@ export function json(body: unknown, status = 200): Response {
   });
 }
 
+// Wraps a function handler so anything that throws (Supabase or Resend
+// errors, missing config) comes back as JSON the browser console can show,
+// instead of Netlify's generic 500 page.
+export function withJsonErrors(
+  name: string,
+  handler: (req: Request) => Promise<Response>,
+): (req: Request) => Promise<Response> {
+  return async (req) => {
+    try {
+      return await handler(req);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      console.error(`[${name}]`, detail);
+      return json({ ok: false, error: `${name} failed`, detail }, 502);
+    }
+  };
+}
+
+// The live site. Email apps fetch images over the internet, so the logo
+// always comes from here — under `netlify dev` URL is localhost, which
+// nobody's inbox can reach.
+const PUBLIC_SITE_URL = "https://petramakeroom.com";
+
 export function siteUrl(): string {
-  return (process.env.SITE_URL || process.env.URL || "").replace(/\/$/, "");
+  return (process.env.SITE_URL || process.env.URL || PUBLIC_SITE_URL).replace(/\/$/, "");
 }
 
 export function logoUrl(): string {
-  return `${siteUrl()}/images/petra-logo-email.png`;
+  return `${PUBLIC_SITE_URL}/images/petra-logo-email.png`;
 }
 
 export function pledgeUrl(pledgeId: string): string {
@@ -80,14 +103,16 @@ export interface OutgoingEmail {
   html: string;
 }
 
-// Sends emails in batches of up to 100. The idempotency key (suffixed with
-// the batch number) stops a retried call from sending the same batch twice.
-export async function sendEmails(emails: OutgoingEmail[], idempotencyKey: string): Promise<number> {
+// Sends emails in batches of up to 100 and returns Resend's email ids (look
+// them up under Emails in the Resend dashboard). The idempotency key
+// (suffixed with the batch number) stops a retried call from sending the
+// same batch twice.
+export async function sendEmails(emails: OutgoingEmail[], idempotencyKey: string): Promise<string[]> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY not set");
   const resend = new Resend(apiKey);
 
-  let sent = 0;
+  const ids: string[] = [];
   for (let start = 0; start < emails.length; start += BATCH_LIMIT) {
     const batch: CreateBatchOptions = emails.slice(start, start + BATCH_LIMIT).map((email) => ({
       from: SENDER,
@@ -96,13 +121,13 @@ export async function sendEmails(emails: OutgoingEmail[], idempotencyKey: string
       subject: email.subject,
       html: email.html,
     }));
-    const { error } = await resend.batch.send(batch, {
+    const { data, error } = await resend.batch.send(batch, {
       idempotencyKey: `${idempotencyKey}-${start / BATCH_LIMIT}`,
     });
     if (error) throw new Error(`Resend: ${error.message}`);
-    sent += batch.length;
+    ids.push(...(data?.data ?? []).map((email) => email.id));
   }
-  return sent;
+  return ids;
 }
 
 export interface PledgeRow {

@@ -88,7 +88,7 @@ export default async (): Promise<Response> => {
     })),
   );
 
-  const sent = await sendEmails(emails, `reminders-${today}`);
+  const sent = (await sendEmails(emails, `reminders-${today}`)).length;
   console.log(`[send-reminders] ${today}: sent ${sent} emails for ${due.length} pledges`);
   return new Response(`sent ${sent}`);
 };

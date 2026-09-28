@@ -18,21 +18,22 @@ import {
   json,
   sendEmails,
   supabaseRest,
+  withJsonErrors,
   type PledgeRow,
 } from "../lib/server";
 
 const MAX_AGE_MS = 30 * 60 * 1000;
 
-export default async (req: Request): Promise<Response> => {
-  if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
-  if (!process.env.RESEND_API_KEY) return json({ sent: 0, reason: "RESEND_API_KEY not set" });
+export default withJsonErrors("send-payment-confirmation", async (req: Request): Promise<Response> => {
+  if (req.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
+  if (!process.env.RESEND_API_KEY) return json({ ok: false, error: "RESEND_API_KEY not set" }, 503);
 
   let pledgeId: unknown;
   let installmentId: unknown;
   try {
     ({ pledgeId, installmentId } = await req.json());
   } catch {
-    return json({ error: "invalid JSON" }, 400);
+    return json({ ok: false, error: "invalid JSON" }, 400);
   }
   if (
     typeof pledgeId !== "string" ||
@@ -40,18 +41,18 @@ export default async (req: Request): Promise<Response> => {
     typeof installmentId !== "string" ||
     !UUID.test(installmentId)
   ) {
-    return json({ error: "invalid pledgeId or installmentId" }, 400);
+    return json({ ok: false, error: "invalid pledgeId or installmentId" }, 400);
   }
 
   const rest = supabaseRest();
   const [pledge]: PledgeRow[] = await rest(`pledges?id=eq.${pledgeId}&select=${PLEDGE_SELECT}`);
   const installment = pledge?.installments.find((i) => i.id === installmentId);
-  if (!pledge || !installment) return json({ error: "payment not found" }, 404);
+  if (!pledge || !installment) return json({ ok: false, error: "payment not found" }, 404);
   if (installment.status !== "paid" || !installment.paid_at) {
-    return json({ error: "payment has not been confirmed" }, 409);
+    return json({ ok: false, error: "payment has not been confirmed" }, 409);
   }
   if (Date.now() - new Date(installment.paid_at).getTime() > MAX_AGE_MS) {
-    return json({ error: "payment was confirmed too long ago to send emails for" }, 409);
+    return json({ ok: false, error: "payment was confirmed too long ago to send emails for" }, 409);
   }
 
   const recipients = (await getRecipients(rest, [pledge])).get(pledge.id) ?? [];
@@ -60,10 +61,6 @@ export default async (req: Request): Promise<Response> => {
     ...paymentConfirmedEmail(pledge, installment, recipient),
   }));
 
-  try {
-    return json({ sent: await sendEmails(emails, `payment-confirmed-${installmentId}`) });
-  } catch (err) {
-    console.error("[send-payment-confirmation]", err);
-    return json({ error: "email provider error" }, 502);
-  }
-};
+  const emailIds = await sendEmails(emails, `payment-confirmed-${installmentId}`);
+  return json({ ok: true, sent: emailIds.length, emailIds });
+});

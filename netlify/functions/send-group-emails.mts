@@ -19,31 +19,32 @@ import {
   pledgeUrl,
   sendEmails,
   supabaseRest,
+  withJsonErrors,
 } from "../lib/server";
 
 const MAX_AGE_MS = 30 * 60 * 1000;
 
-export default async (req: Request): Promise<Response> => {
-  if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
-  if (!process.env.RESEND_API_KEY) return json({ sent: 0, reason: "RESEND_API_KEY not set" });
+export default withJsonErrors("send-group-emails", async (req: Request): Promise<Response> => {
+  if (req.method !== "POST") return json({ ok: false, error: "method not allowed" }, 405);
+  if (!process.env.RESEND_API_KEY) return json({ ok: false, error: "RESEND_API_KEY not set" }, 503);
 
   let pledgeId: unknown;
   try {
     ({ pledgeId } = await req.json());
   } catch {
-    return json({ error: "invalid JSON" }, 400);
+    return json({ ok: false, error: "invalid JSON" }, 400);
   }
   if (typeof pledgeId !== "string" || !UUID.test(pledgeId)) {
-    return json({ error: "invalid pledgeId" }, 400);
+    return json({ ok: false, error: "invalid pledgeId" }, 400);
   }
 
   const rest = supabaseRest();
   const [pledge] = await rest(
     `pledges?id=eq.${pledgeId}&kind=eq.group&select=id,tier,group_id,amount_naira,created_at`,
   );
-  if (!pledge) return json({ error: "group seed not found" }, 404);
+  if (!pledge) return json({ ok: false, error: "group seed not found" }, 404);
   if (Date.now() - new Date(pledge.created_at).getTime() > MAX_AGE_MS) {
-    return json({ error: "group seed is too old to send emails for" }, 409);
+    return json({ ok: false, error: "group seed is too old to send emails for" }, 409);
   }
 
   const [group] = await rest(`groups?id=eq.${pledge.group_id}&select=organizer_name`);
@@ -54,7 +55,7 @@ export default async (req: Request): Promise<Response> => {
   const installments: Array<{ amount: number; due_date: string }> = await rest(
     `installments?pledge_id=eq.${pledgeId}&select=amount,due_date&order=due_date.asc`,
   );
-  if (!group || members.length === 0) return json({ error: "group not found" }, 404);
+  if (!group || members.length === 0) return json({ ok: false, error: "group not found" }, 404);
 
   const today = lagosToday();
   const whenText =
@@ -86,10 +87,6 @@ export default async (req: Request): Promise<Response> => {
     return { to: member.email, subject: groupEmailSubject(input), html: renderGroupEmail(input) };
   });
 
-  try {
-    return json({ sent: await sendEmails(emails, `group-seed-${pledgeId}`) });
-  } catch (err) {
-    console.error("[send-group-emails]", err);
-    return json({ error: "email provider error" }, 502);
-  }
-};
+  const emailIds = await sendEmails(emails, `group-seed-${pledgeId}`);
+  return json({ ok: true, sent: emailIds.length, emailIds });
+});

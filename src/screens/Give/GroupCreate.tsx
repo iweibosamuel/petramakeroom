@@ -7,6 +7,7 @@ import { notifyGroupMembers } from "../../lib/giving/notifications";
 import { rememberEmail } from "../../lib/giving/rememberedDonor";
 import { TIERS } from "../../lib/giving/tiers";
 import { GiveShell } from "./components/GiveShell";
+import { useFlowStep } from "./components/useFlowStep";
 import { BigAmount, StickyAction } from "./components/FlowParts";
 import {
   AmountStep,
@@ -51,7 +52,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element => {
   const tier = TIERS[tierId];
   const navigate = useNavigate();
-  const [step, setStep] = useState<"amount" | "details" | "members" | "payment">("amount");
+  const [step, goTo, back] = useFlowStep<"amount" | "details" | "members" | "payment">("amount");
   const [totalNaira, setTotalNaira] = useState(0);
   const [details, setDetails] = useState<DonorDetails>(emptyDonorDetails);
   const [organizerShare, setOrganizerShare] = useState(0);
@@ -100,7 +101,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
       return;
     }
     setError(null);
-    setStep("payment");
+    goTo("payment");
   }
 
   async function handlePaymentPlanSubmit(result: PaymentPlanFormResult) {
@@ -136,7 +137,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
 
   if (step === "payment") {
     return (
-      <GiveShell title="When will your group give?" onBack={() => setStep("members")}>
+      <GiveShell title="When will your group give?" onBack={back}>
         <PaymentPlanForm
           totalAmountNaira={totalNaira}
           amountLabel="Your group is giving"
@@ -153,7 +154,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
       <GiveShell
         title="Who's giving?"
         subtitle="Add everyone giving with you and how much each person is covering. We'll email each person their amount."
-        onBack={() => setStep("details")}
+        onBack={back}
       >
         <form onSubmit={handleMembersContinue} className="flex flex-1 flex-col">
           <p className="text-base text-slate-500">Your group's total</p>
@@ -281,10 +282,10 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
       <DetailsStep
         subtitle="You're organising this group seed. Next, you'll add everyone giving with you."
         initial={details}
-        onBack={() => setStep("amount")}
+        onBack={back}
         onContinue={(next) => {
           setDetails(next);
-          setStep("members");
+          goTo("members");
         }}
       />
     );
@@ -302,7 +303,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
       backTo={`/give/${tier.slug}`}
       onContinue={(amount) => {
         setTotalNaira(amount);
-        setStep("details");
+        goTo("details");
       }}
     />
   );
