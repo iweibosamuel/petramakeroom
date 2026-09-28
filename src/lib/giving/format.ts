@@ -1,4 +1,4 @@
-import { MAX_DEADLINE_MONTHS, UNIT_VALUE_NGN } from "./types";
+import { LAST_DUE_DATE, UNIT_VALUE_NGN } from "./types";
 
 export function formatNaira(amount: number): string {
   return new Intl.NumberFormat("en-NG", {
@@ -32,10 +32,9 @@ export function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function maxDeadlineIso(fromDate: Date = new Date()): string {
-  const d = new Date(fromDate);
-  d.setMonth(d.getMonth() + MAX_DEADLINE_MONTHS);
-  return d.toISOString().slice(0, 10);
+// The latest date a payment can be scheduled for (see LAST_DUE_DATE).
+export function maxDeadlineIso(): string {
+  return LAST_DUE_DATE;
 }
 
 export function formatDate(iso: string): string {

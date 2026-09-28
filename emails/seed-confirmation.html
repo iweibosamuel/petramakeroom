@@ -1,0 +1,263 @@
+<!doctype html>
+<!--
+  Petra "Make Room" — seed confirmation email (Resend template).
+
+  Sent after someone pledges a seed. Matches the giving site: cream
+  background, heavy black headline, big naira amount, detail rows, pill
+  buttons, tier colour accent.
+
+  Resend variables (triple braces). Resend has no if/else or loops, so the
+  "give now" vs "scheduled" wording comes from the variables:
+
+    DONOR_NAME     Ada Obi
+    HEADLINE       Complete your seed            | You're in
+    INTRO          Pay using any of the options below, then tap "I've paid".
+                   | Here's your seed. When a payment is due, pay using any
+                     of the options below, then tap "I've paid".
+    SEED_AMOUNT    ₦250,000
+    TIER_NAME      Burden Bearer                 | Centurion
+    TIER_COLOR     #0339a1                       | #a00238
+    WHEN           Today                         | 28 Nov 2026
+    PLAN           One payment                   | 3 installments · next ₦100,000 due 12 Oct 2026
+    PLEDGE_URL     https://<site>/give/schedule/<pledge id>
+    SITE_URL       https://<site>   (no trailing slash — used for the logo)
+
+  Fonts: email apps can't load NaN Drum, so headlines fall back to Arial
+  Black, and body text to Inter (Apple Mail/iOS) then Helvetica/Arial.
+-->
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light only" />
+    <title>Your Make Room seed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body { margin: 0; padding: 0; background: #fffaf4; }
+      a { color: #000000; }
+      @media (max-width: 620px) {
+        .container { width: 100% !important; }
+        .px { padding-left: 20px !important; padding-right: 20px !important; }
+        .headline { font-size: 28px !important; }
+        .amount { font-size: 38px !important; }
+        .btn-half { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0; background:#fffaf4; -webkit-text-size-adjust:100%;">
+    <!-- Inbox preview text -->
+    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all;">
+      Your {{{TIER_NAME}}} seed of {{{SEED_AMOUNT}}} — here's how to pay, and where to confirm once you have.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fffaf4;">
+      <tr>
+        <td align="center" style="padding:32px 12px;">
+          <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px;">
+
+            <!-- Logo -->
+            <tr>
+              <td align="center" style="padding:0 0 28px 0;">
+                <img src="{{{SITE_URL}}}/images/petra-logo-email.png" width="64" height="64" alt="Petra" style="display:block; width:64px; height:64px; border:0;" />
+              </td>
+            </tr>
+
+            <!-- Headline -->
+            <tr>
+              <td class="px" style="padding:0 32px;">
+                <h1 class="headline" style="margin:0; font-family:'NaN Drum Extended','Arial Black','Helvetica Neue',Arial,sans-serif; font-size:34px; line-height:1.1; font-weight:900; color:#000000;">
+                  {{{HEADLINE}}}
+                </h1>
+                <p style="margin:12px 0 0 0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:16px; line-height:24px; color:#64748b;">
+                  Thank you, {{{DONOR_NAME}}}. {{{INTRO}}}
+                </p>
+              </td>
+            </tr>
+
+            <!-- Amount -->
+            <tr>
+              <td class="px" style="padding:28px 32px 0 32px;">
+                <p style="margin:0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:15px; color:#64748b;">Your seed</p>
+                <p class="amount" style="margin:6px 0 0 0; font-family:'NaN Drum Extended','Arial Black','Helvetica Neue',Arial,sans-serif; font-size:46px; line-height:1; font-weight:900; color:#000000;">
+                  {{{SEED_AMOUNT}}}
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">
+                  <tr>
+                    <td style="background:{{{TIER_COLOR}}}; border-radius:999px; padding:6px 14px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#ffffff;">
+                      {{{TIER_NAME}}}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Detail rows -->
+            <tr>
+              <td class="px" style="padding:24px 32px 0 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e7e1d9; border-bottom:1px solid #e7e1d9;">
+                  <tr>
+                    <td style="padding:16px 0; border-bottom:1px solid #e7e1d9; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                      <p style="margin:0; font-size:14px; color:#64748b;">When</p>
+                      <p style="margin:2px 0 0 0; font-size:18px; font-weight:700; color:#000000;">{{{WHEN}}}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:16px 0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                      <p style="margin:0; font-size:14px; color:#64748b;">Plan</p>
+                      <p style="margin:2px 0 0 0; font-size:18px; font-weight:700; color:#000000;">{{{PLAN}}}</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Main action -->
+            <tr>
+              <td class="px" style="padding:28px 32px 0 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" bgcolor="#000000" style="border-radius:999px;">
+                      <a href="{{{PLEDGE_URL}}}" style="display:block; padding:17px 24px; font-family:'NaN Drum Extended','Arial Black','Helvetica Neue',Arial,sans-serif; font-size:15px; font-weight:900; color:#ffffff; text-decoration:none; border-radius:999px;">
+                        View my seed &amp; confirm payment
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:12px 0 0 0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; line-height:21px; color:#64748b; text-align:center;">
+                  After you pay, tap <strong style="color:#000000;">“I’ve paid”</strong> on that page so we can record it.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Pay online -->
+            <tr>
+              <td class="px" style="padding:36px 32px 0 32px;">
+                <p style="margin:0 0 12px 0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; color:#64748b;">Pay online</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td class="btn-half" width="50%" style="padding:0 5px 0 0;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td align="center" style="border-radius:999px; background:#ebe6df;">
+                            <a href="https://paystack.shop/pay/aami" style="display:block; padding:14px 16px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:15px; font-weight:700; color:#000000; text-decoration:none;">
+                              Paystack ↗
+                              <span style="display:block; font-size:12px; font-weight:400; color:#64748b;">Naira cards, transfer, USSD</span>
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td class="btn-half" width="50%" style="padding:0 0 0 5px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td align="center" style="border-radius:999px; background:#ebe6df;">
+                            <a href="https://www.flutterwave.com/pay/international-giving" style="display:block; padding:14px 16px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:15px; font-weight:700; color:#000000; text-decoration:none;">
+                              Flutterwave ↗
+                              <span style="display:block; font-size:12px; font-weight:400; color:#64748b;">International cards</span>
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Bank transfer -->
+            <tr>
+              <td class="px" style="padding:32px 32px 0 32px;">
+                <p style="margin:0 0 12px 0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; color:#64748b;">Bank transfer</p>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border:1px solid #d0d5dd; border-radius:20px;">
+                  <tr>
+                    <td style="padding:18px 20px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                      <p style="margin:0; font-size:16px; font-weight:700; color:#000000;">GTBank <span style="font-weight:400; color:#64748b;">· Naira (₦)</span></p>
+                      <p style="margin:12px 0 0 0; font-size:12px; color:#64748b;">Account Name</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">PETRA CHRISTIAN CENTRE PROGRAM</p>
+                      <p style="margin:10px 0 0 0; font-size:12px; color:#64748b;">Account Number</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">0558726334</p>
+                      <p style="margin:10px 0 0 0; font-size:12px; color:#64748b;">Transfer Description</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">Rain Conference</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px; background:#ffffff; border:1px solid #d0d5dd; border-radius:20px;">
+                  <tr>
+                    <td style="padding:18px 20px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                      <p style="margin:0; font-size:16px; font-weight:700; color:#000000;">Bank of America <span style="font-weight:400; color:#64748b;">· USD ($)</span></p>
+                      <p style="margin:12px 0 0 0; font-size:12px; color:#64748b;">Account Name</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">Petra Christian Centre</p>
+                      <p style="margin:10px 0 0 0; font-size:12px; color:#64748b;">Account Number</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">488135397734</p>
+                      <p style="margin:10px 0 0 0; font-size:12px; color:#64748b;">Routing (Paper &amp; Electronic)</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">111000025</p>
+                      <p style="margin:10px 0 0 0; font-size:12px; color:#64748b;">Routing (Wires)</p>
+                      <p style="margin:2px 0 0 0; font-size:15px; font-weight:600; color:#000000;">026009593</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Zelle -->
+            <tr>
+              <td class="px" style="padding:32px 32px 0 32px;">
+                <p style="margin:0 0 12px 0; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; color:#64748b;">Zelle</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border:1px solid #d0d5dd; border-radius:20px;">
+                  <tr>
+                    <td style="padding:18px 20px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                      <p style="margin:0; font-size:12px; color:#64748b;">USD ($) · Send to</p>
+                      <p style="margin:2px 0 0 0; font-size:16px; font-weight:700; color:#000000;">
+                        <a href="mailto:Finance@petracc.org" style="color:#000000; text-decoration:none;">Finance@petracc.org</a>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Note -->
+            <tr>
+              <td class="px" style="padding:24px 32px 0 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1ece5; border-radius:16px;">
+                  <tr>
+                    <td style="padding:16px 18px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:14px; line-height:21px; color:#475569;">
+                      Please use this email address when paying online, and keep your receipt. You can check your seed any time under <strong style="color:#000000;">Track giving</strong> on the Make Room site.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td align="center" class="px" style="padding:48px 32px 0 32px;">
+                <p style="margin:0; font-family:'NaN Drum Extended','Arial Black','Helvetica Neue',Arial,sans-serif; font-size:30px; line-height:0.95; font-weight:900; color:#000000; letter-spacing:0.01em;">
+                  MAKE<br />ROOM
+                </p>
+                <p style="margin:10px 0 0 0; font-family:'Arial Black','Helvetica Neue',Arial,sans-serif; font-size:14px; font-weight:900; color:#280084; letter-spacing:0.04em;">
+                  LAGOS X ABUJA
+                </p>
+                <p style="margin:20px auto 0 auto; max-width:420px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px; line-height:20px; color:#64748b; font-style:italic;">
+                  “Clear lots of ground for your tents! Make your tents large. Spread out! Think big!”
+                  <span style="font-style:normal; font-weight:700; color:#161b26;">Isaiah 54:2 MSG</span>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" class="px" style="padding:28px 32px 8px 32px; font-family:Inter,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; line-height:18px; color:#94a3b8;">
+                Petra Christian Centre · You're receiving this because you pledged a seed to Make Room.<br />
+                Questions? Just reply to this email.
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

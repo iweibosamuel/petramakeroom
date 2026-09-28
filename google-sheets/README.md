@@ -8,7 +8,7 @@ per kind of record:
 | **Pledges** | individual or group-member pledge | a payment is confirmed (Paid, Balance, Status) |
 | **Payments** | payment a giver confirmed with "I've paid" | — |
 | **Groups** | group created | — |
-| **Group members** | person who joined a group | they confirm by email, then pledge |
+| **Group members** | person listed in a group seed (with their share) | — |
 
 Rows are matched by the ID in the first column, so a record's row is updated
 in place rather than duplicated. Tabs and column headers are created

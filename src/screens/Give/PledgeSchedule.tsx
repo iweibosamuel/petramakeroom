@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { CalendarDays, CircleCheck, Zap } from "lucide-react";
-import { dataStore, type Installment, type Pledge } from "../../lib/giving";
+import {
+  dataStore,
+  type GroupMember,
+  type Installment,
+  type Pledge,
+} from "../../lib/giving";
 import { formatDate, formatNaira, todayIso } from "../../lib/giving/format";
 import { PaymentMethods } from "./components/PaymentMethods";
 import { ConfirmPaymentSheet } from "./components/ConfirmPaymentSheet";
@@ -12,17 +17,23 @@ import {
   StickyAction,
   pillButtonClass,
 } from "./components/FlowParts";
-import { primaryButtonClass, secondaryButtonClass } from "./components/fieldStyles";
+import { primaryButtonClass } from "./components/fieldStyles";
 import { GiveShell } from "./components/GiveShell";
 
 export const PledgeSchedule = (): JSX.Element => {
   const { pledgeId } = useParams<{ pledgeId: string }>();
   const [pledge, setPledge] = useState<Pledge | null | undefined>(undefined);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [confirming, setConfirming] = useState<Installment | null>(null);
 
   const loadPledge = useCallback(() => {
     if (!pledgeId) return;
-    dataStore.getPledge(pledgeId).then(setPledge);
+    dataStore.getPledge(pledgeId).then((found) => {
+      setPledge(found);
+      if (found?.kind === "group" && found.groupId) {
+        dataStore.getGroupMembers(found.groupId).then(setGroupMembers);
+      }
+    });
   }, [pledgeId]);
 
   useEffect(loadPledge, [loadPledge]);
@@ -59,11 +70,17 @@ export const PledgeSchedule = (): JSX.Element => {
     : isGivingNow
       ? "Complete your seed"
       : "You're in 🎉";
+  const isGroup = pledge.kind === "group";
+  // Anyone in a group can open this page from their email and pay, so group
+  // wording doesn't assume the viewer is the organiser.
+  const thanks = isGroup ? "Thank you for giving together." : `Thank you, ${pledge.donorName}.`;
   const subtitle = isFullyPaid
-    ? `We've recorded your seed of ${formatNaira(pledge.amountNaira)}, ${pledge.donorName}. God bless you.`
+    ? isGroup
+      ? `We've recorded your group's seed of ${formatNaira(pledge.amountNaira)}. God bless you all.`
+      : `We've recorded your seed of ${formatNaira(pledge.amountNaira)}, ${pledge.donorName}. God bless you.`
     : isGivingNow
-      ? `Thank you, ${pledge.donorName}. Pay ${formatNaira(pledge.amountNaira)} using any of the options below, then tap “I've paid”.`
-      : `Thank you, ${pledge.donorName}. When a payment is due, pay using any of the options below, then tap “I've paid”.`;
+      ? `${thanks} ${isGroup ? "Anyone in the group can pay" : "Pay"} ${formatNaira(pledge.amountNaira)} using any of the options below, then tap “I've paid”.`
+      : `${thanks} When a payment is due, ${isGroup ? "anyone in the group can pay" : "pay"} using any of the options below, then tap “I've paid”.`;
 
   return (
     <GiveShell title={title} subtitle={subtitle} backTo="/give" backLabel="Give again">
@@ -104,7 +121,9 @@ export const PledgeSchedule = (): JSX.Element => {
                     <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700">
                       Paid
                     </span>
-                  ) : (
+                  ) : isDueNow ? undefined : (
+                    // Payments due today are confirmed with the pinned
+                    // "I've paid" button, so the row doesn't repeat it.
                     <button
                       type="button"
                       onClick={() => setConfirming(installment)}
@@ -121,6 +140,30 @@ export const PledgeSchedule = (): JSX.Element => {
         <Divider />
       </div>
 
+      {isGroup && groupMembers.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-1 text-sm text-slate-500">Who's giving</h2>
+          <ul>
+            {groupMembers.map((member) => (
+              <li
+                key={member.id}
+                className="flex items-center justify-between gap-3 border-b border-black/10 py-3"
+              >
+                <span className="min-w-0 text-base font-semibold text-black">
+                  {member.name}
+                  {member.isOrganizer && (
+                    <span className="font-normal text-slate-500"> · organiser</span>
+                  )}
+                </span>
+                <span className="shrink-0 text-base font-bold text-black">
+                  {formatNaira(member.committedAmountNaira)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {!isFullyPaid && (
         <>
           <div className="mt-8">
@@ -130,15 +173,9 @@ export const PledgeSchedule = (): JSX.Element => {
           <p className="mt-8 rounded-2xl bg-black/[0.05] p-4 text-sm text-slate-600">
             After paying, tap “I've paid” so we can record it, and keep your
             receipt. You can also come back later through “Track your giving”
-            with {pledge.donorEmail}.
+            with {isGroup ? "the email you were listed with" : pledge.donorEmail}.
           </p>
         </>
-      )}
-
-      {pledge.groupId && (
-        <Link to={`/give/group/${pledge.groupId}`} className={`${secondaryButtonClass} mt-6`}>
-          View group progress
-        </Link>
       )}
 
       {nextPending && (

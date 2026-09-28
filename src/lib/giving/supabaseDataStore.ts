@@ -1,12 +1,10 @@
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabaseClient";
-import { sendGroupConfirmationEmail } from "./email";
 import type {
-  CompleteGroupMemberPledgeInput,
-  CreateGroupInput,
+  CreatedGroupPledge,
+  CreateGroupPledgeInput,
   CreateIndividualPledgeInput,
   DataStore,
-  JoinGroupInput,
 } from "./dataStore";
 import type {
   Campaign,
@@ -76,7 +74,6 @@ function mapGroupRow(row: any): Group {
     ),
     totalUnits: Number(row.total_units),
     deadline: row.deadline,
-    inviteCode: row.invite_code,
     createdAt: row.created_at,
   };
 }
@@ -88,11 +85,8 @@ function mapGroupMemberRow(row: any): GroupMember {
     name: row.name,
     email: row.email,
     phone: row.phone ?? undefined,
-    profile: mapProfile(row.location, row.is_petra_member, row.campus),
     committedAmountNaira: Number(row.committed_amount_naira),
-    status: row.status,
-    confirmationToken: row.confirmation_token,
-    pledgeId: row.pledge_id ?? undefined,
+    isOrganizer: Boolean(row.is_organizer),
     createdAt: row.created_at,
   };
 }
@@ -223,15 +217,39 @@ export class SupabaseDataStore implements DataStore {
 
   async getPledgesByEmail(email: string): Promise<Pledge[]> {
     const client = requireClient();
-    const { data, error } = await client
+    const normalized = email.trim();
+
+    const { data: ownRows, error: ownError } = await client
       .from("pledges")
       .select("*")
-      .ilike("donor_email", email.trim())
-      .order("created_at", { ascending: false });
-    if (error) throw error;
+      .ilike("donor_email", normalized);
+    if (ownError) throw ownError;
+
+    // Group seeds this person was listed in by the organiser.
+    const { data: memberRows, error: memberError } = await client
+      .from("group_members")
+      .select("group_id")
+      .ilike("email", normalized);
+    if (memberError) throw memberError;
+    const groupIds = [...new Set((memberRows ?? []).map((r: any) => r.group_id))];
+
+    let groupRows: any[] = [];
+    if (groupIds.length > 0) {
+      const { data, error } = await client
+        .from("pledges")
+        .select("*")
+        .eq("kind", "group")
+        .in("group_id", groupIds);
+      if (error) throw error;
+      groupRows = data ?? [];
+    }
+
+    const rows = [...(ownRows ?? []), ...groupRows]
+      .filter((row, i, all) => all.findIndex((r) => r.id === row.id) === i)
+      .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
 
     return Promise.all(
-      (data ?? []).map(async (row: any) => {
+      rows.map(async (row: any) => {
         const installments = await fetchInstallments(client, row.id);
         return mapPledgeRow(row, installments);
       }),
@@ -270,13 +288,15 @@ export class SupabaseDataStore implements DataStore {
     if (rpcErr) throw rpcErr;
   }
 
-  async createGroup(input: CreateGroupInput): Promise<Group> {
+  async createGroupPledge(input: CreateGroupPledgeInput): Promise<CreatedGroupPledge> {
     const client = requireClient();
-    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const { data, error } = await client
+    const totalNaira = input.members.reduce((sum, m) => sum + m.amountNaira, 0);
+    const groupId = uuid();
+
+    const { data: groupRow, error: groupError } = await client
       .from("groups")
       .insert({
-        id: uuid(),
+        id: groupId,
         campaign_id: input.campaignId,
         tier: input.tier,
         organizer_name: input.organizerName,
@@ -285,14 +305,66 @@ export class SupabaseDataStore implements DataStore {
         organizer_location: input.organizerProfile.location,
         organizer_is_petra_member: input.organizerProfile.isPetraMember,
         organizer_campus: input.organizerProfile.campus ?? null,
-        total_units: input.totalUnits,
+        total_units: totalNaira / 1_000_000,
         deadline: input.deadline,
-        invite_code: inviteCode,
+        // Required by the original schema; invite links are no longer used.
+        invite_code: groupId.slice(0, 8).toUpperCase(),
       })
       .select()
       .single();
-    if (error) throw error;
-    return mapGroupRow(data);
+    if (groupError) throw groupError;
+
+    const { data: memberRows, error: memberError } = await client
+      .from("group_members")
+      .insert(
+        input.members.map((m, index) => ({
+          id: uuid(),
+          group_id: groupId,
+          name: m.name,
+          email: m.email,
+          phone: m.phone,
+          committed_amount_naira: m.amountNaira,
+          is_organizer: index === 0,
+          status: "confirmed",
+        })),
+      )
+      .select();
+    if (memberError) throw memberError;
+
+    const pledgeId = uuid();
+    const { data: pledgeRow, error: pledgeError } = await client
+      .from("pledges")
+      .insert({
+        id: pledgeId,
+        campaign_id: input.campaignId,
+        kind: "group",
+        tier: input.tier,
+        group_id: groupId,
+        donor_name: input.organizerName,
+        donor_email: input.organizerEmail,
+        donor_phone: input.organizerPhone,
+        location: input.organizerProfile.location,
+        is_petra_member: input.organizerProfile.isPetraMember,
+        campus: input.organizerProfile.campus ?? null,
+        units: totalNaira / 1_000_000,
+        amount_naira: totalNaira,
+        deadline: input.deadline,
+        payment_plan_type: input.paymentPlan,
+        amount_paid: 0,
+      })
+      .select()
+      .single();
+    if (pledgeError) throw pledgeError;
+
+    await insertInstallments(client, pledgeId, input.installments);
+
+    return {
+      group: mapGroupRow(groupRow),
+      members: (memberRows ?? [])
+        .map(mapGroupMemberRow)
+        .sort((a, b) => Number(b.isOrganizer) - Number(a.isOrganizer)),
+      pledge: mapPledgeRow(pledgeRow, input.installments),
+    };
   }
 
   async getGroup(groupId: string): Promise<Group | null> {
@@ -306,156 +378,15 @@ export class SupabaseDataStore implements DataStore {
     return data ? mapGroupRow(data) : null;
   }
 
-  async getGroupByInviteCode(inviteCode: string): Promise<Group | null> {
-    const client = requireClient();
-    const { data, error } = await client
-      .from("groups")
-      .select("*")
-      .ilike("invite_code", inviteCode)
-      .maybeSingle();
-    if (error) throw error;
-    return data ? mapGroupRow(data) : null;
-  }
-
-  async joinGroup(
-    groupId: string,
-    input: JoinGroupInput,
-  ): Promise<GroupMember> {
-    const client = requireClient();
-    const { data: group, error: groupErr } = await client
-      .from("groups")
-      .select("*")
-      .eq("id", groupId)
-      .single();
-    if (groupErr) throw groupErr;
-
-    const { data, error } = await client
-      .from("group_members")
-      .insert({
-        id: uuid(),
-        group_id: groupId,
-        name: input.name,
-        email: input.email,
-        phone: input.phone,
-        location: input.profile.location,
-        is_petra_member: input.profile.isPetraMember,
-        campus: input.profile.campus ?? null,
-        committed_amount_naira: input.committedAmountNaira,
-        status: "pending",
-        confirmation_token: uuid(),
-      })
-      .select()
-      .single();
-    if (error) throw error;
-
-    const member = mapGroupMemberRow(data);
-    await sendGroupConfirmationEmail({
-      to: member.email,
-      name: member.name,
-      groupOrganizerName: group.organizer_name,
-      confirmationToken: member.confirmationToken,
-      committedAmountNaira: member.committedAmountNaira,
-    });
-
-    return member;
-  }
-
   async getGroupMembers(groupId: string): Promise<GroupMember[]> {
     const client = requireClient();
     const { data, error } = await client
       .from("group_members")
       .select("*")
       .eq("group_id", groupId)
-      .order("created_at", { ascending: true });
+      .order("is_organizer", { ascending: false })
+      .order("name", { ascending: true });
     if (error) throw error;
     return (data ?? []).map(mapGroupMemberRow);
-  }
-
-  async getGroupMember(memberId: string): Promise<GroupMember | null> {
-    const client = requireClient();
-    const { data, error } = await client
-      .from("group_members")
-      .select("*")
-      .eq("id", memberId)
-      .maybeSingle();
-    if (error) throw error;
-    return data ? mapGroupMemberRow(data) : null;
-  }
-
-  async getGroupMembershipsByEmail(email: string): Promise<GroupMember[]> {
-    const client = requireClient();
-    const { data, error } = await client
-      .from("group_members")
-      .select("*")
-      .ilike("email", email.trim())
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return (data ?? []).map(mapGroupMemberRow);
-  }
-
-  async confirmGroupMemberByToken(token: string): Promise<GroupMember> {
-    const client = requireClient();
-    const { data, error } = await client
-      .from("group_members")
-      .update({ status: "confirmed" })
-      .eq("confirmation_token", token)
-      .select()
-      .single();
-    if (error) throw error;
-    return mapGroupMemberRow(data);
-  }
-
-  async completeGroupMemberPledge(
-    input: CompleteGroupMemberPledgeInput,
-  ): Promise<Pledge> {
-    const client = requireClient();
-    const { data: member, error: memberErr } = await client
-      .from("group_members")
-      .select("*")
-      .eq("id", input.memberId)
-      .single();
-    if (memberErr) throw memberErr;
-
-    const { data: group, error: groupErr } = await client
-      .from("groups")
-      .select("*")
-      .eq("id", member.group_id)
-      .single();
-    if (groupErr) throw groupErr;
-
-    const pledgeId = uuid();
-    const { data: pledgeRow, error: pledgeErr } = await client
-      .from("pledges")
-      .insert({
-        id: pledgeId,
-        campaign_id: group.campaign_id,
-        kind: "group_member",
-        tier: group.tier,
-        group_id: group.id,
-        donor_name: member.name,
-        donor_email: member.email,
-        donor_phone: member.phone,
-        location: member.location,
-        is_petra_member: member.is_petra_member,
-        campus: member.campus,
-        units: Number(member.committed_amount_naira) / 1_000_000,
-        amount_naira: member.committed_amount_naira,
-        deadline: input.deadline,
-        payment_plan_type: input.paymentPlan,
-        amount_paid: 0,
-      })
-      .select()
-      .single();
-    if (pledgeErr) throw pledgeErr;
-
-    await insertInstallments(client, pledgeId, input.installments);
-
-    const { error: updateErr } = await client
-      .from("group_members")
-      .update({ pledge_id: pledgeId })
-      .eq("id", input.memberId);
-    if (updateErr) throw updateErr;
-
-    return mapPledgeRow(pledgeRow, input.installments);
   }
 }

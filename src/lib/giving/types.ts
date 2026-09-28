@@ -1,5 +1,6 @@
 export const UNIT_VALUE_NGN = 1_000_000;
-export const MAX_DEADLINE_MONTHS = 2;
+// Latest date anyone can schedule a payment for.
+export const LAST_DUE_DATE = "2026-12-21";
 
 export type PaymentPlanType = "full" | "installments";
 
@@ -44,7 +45,9 @@ export interface PaymentPlan {
   installments: Installment[];
 }
 
-export type PledgeKind = "individual" | "group_member";
+// "group" is one seed given together by several people. "group_member" is a
+// legacy kind from the old join-link flow, kept so older pledges still load.
+export type PledgeKind = "individual" | "group" | "group_member";
 
 export interface Pledge {
   id: string;
@@ -64,6 +67,9 @@ export interface Pledge {
   createdAt: string;
 }
 
+// A group records that several people are giving one seed together. The
+// organiser lists everyone and their share; the seed itself is a single
+// pledge (kind "group") that anyone in the group can pay.
 export interface Group {
   id: string;
   campaignId: string;
@@ -74,11 +80,8 @@ export interface Group {
   organizerProfile?: DonorProfile;
   totalUnits: number;
   deadline: string;
-  inviteCode: string;
   createdAt: string;
 }
-
-export type GroupMemberStatus = "pending" | "confirmed";
 
 export interface GroupMember {
   id: string;
@@ -86,11 +89,8 @@ export interface GroupMember {
   name: string;
   email: string;
   phone?: string;
-  profile?: DonorProfile;
   committedAmountNaira: number;
-  status: GroupMemberStatus;
-  confirmationToken: string;
-  pledgeId?: string;
+  isOrganizer: boolean;
   createdAt: string;
 }
 

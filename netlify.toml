@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+
+# Single-page app: send every route (e.g. /give/schedule/<id> from an email
+# link) to index.html so React Router can handle it. Real files like images
+# and fonts are still served as-is, and /.netlify/functions/* is unaffected.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

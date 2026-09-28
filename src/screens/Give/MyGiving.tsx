@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import {
   dataStore,
-  type GroupMember,
   type Installment,
   type Pledge,
 } from "../../lib/giving";
@@ -23,7 +22,6 @@ export const MyGiving = (): JSX.Element => {
   const [email, setEmail] = useState(() => getRememberedEmail() ?? "");
   const [lookedUpEmail, setLookedUpEmail] = useState<string | null>(null);
   const [pledges, setPledges] = useState<Pledge[]>([]);
-  const [memberships, setMemberships] = useState<GroupMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<{
@@ -35,12 +33,7 @@ export const MyGiving = (): JSX.Element => {
     setLoading(true);
     setError(null);
     try {
-      const [foundPledges, foundMemberships] = await Promise.all([
-        dataStore.getPledgesByEmail(targetEmail),
-        dataStore.getGroupMembershipsByEmail(targetEmail),
-      ]);
-      setPledges(foundPledges);
-      setMemberships(foundMemberships);
+      setPledges(await dataStore.getPledgesByEmail(targetEmail));
       setLookedUpEmail(targetEmail);
       rememberEmail(targetEmail);
     } catch (err) {
@@ -71,14 +64,11 @@ export const MyGiving = (): JSX.Element => {
     forgetRememberedEmail();
     setLookedUpEmail(null);
     setPledges([]);
-    setMemberships([]);
     setEmail("");
   }
 
-  const membershipsWithoutPledge = memberships.filter((m) => !m.pledgeId);
-
   if (lookedUpEmail) {
-    const hasNothing = pledges.length === 0 && membershipsWithoutPledge.length === 0;
+    const hasNothing = pledges.length === 0;
     return (
       <GiveShell
         title="Your giving"
@@ -112,7 +102,7 @@ export const MyGiving = (): JSX.Element => {
                       <div className="min-w-0">
                         <p className="text-sm text-slate-500">
                           {TIERS[pledge.tier ?? "burden_bearer"].name} ·{" "}
-                          {pledge.kind === "group_member" ? "Group" : "Individual"}
+                          {pledge.kind === "individual" ? "Individual" : "Group"}
                         </p>
                         <p className="text-lg font-bold text-black">
                           {formatNaira(pledge.amountNaira)}
@@ -143,46 +133,6 @@ export const MyGiving = (): JSX.Element => {
                   </li>
                 );
               })}
-            </ul>
-          </div>
-        )}
-
-        {!loading && membershipsWithoutPledge.length > 0 && (
-          <div className="mb-6">
-            <h2 className="mb-3 text-sm text-slate-500">
-              Groups you've joined
-            </h2>
-            <ul className="flex flex-col gap-2">
-              {membershipsWithoutPledge.map((member) => (
-                <li key={member.id}>
-                  <Link
-                    to={
-                      member.status === "confirmed"
-                        ? `/give/group/member/${member.id}/pledge`
-                        : `/give/group/${member.groupId}`
-                    }
-                    className="flex items-center justify-between rounded-2xl bg-black/[0.05] px-4 py-4 transition-colors hover:bg-black/[0.08]"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">
-                        {formatNaira(member.committedAmountNaira)} commitment
-                      </p>
-                      <p
-                        className={`text-xs font-semibold ${
-                          member.status === "confirmed" ? "text-emerald-600" : "text-amber-500"
-                        }`}
-                      >
-                        {member.status === "confirmed"
-                          ? "Confirmed — set up your payment plan"
-                          : "Pending confirmation"}
-                      </p>
-                    </div>
-                    <span className="text-xs font-semibold text-black">
-                      {member.status === "confirmed" ? "Continue →" : "View group →"}
-                    </span>
-                  </Link>
-                </li>
-              ))}
             </ul>
           </div>
         )}

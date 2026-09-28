@@ -53,7 +53,14 @@ function pledgeRow(pledge: Pledge): Row {
     "Pledge ID": pledge.id,
     "Created at": pledge.createdAt,
     Tier: tierName(pledge.tier),
-    Type: pledge.kind === "group_member" ? "Group member" : "Individual",
+    Type:
+      pledge.kind === "group"
+        ? "Group"
+        : pledge.kind === "group_member"
+          ? "Group member (old flow)"
+          : "Individual",
+    // For group seeds this is the organiser; everyone giving is listed on
+    // the Group members tab.
     Name: pledge.donorName,
     Email: pledge.donorEmail,
     Phone: pledge.donorPhone ?? "",
@@ -88,7 +95,7 @@ function paymentRow(pledge: Pledge, installment: Installment): Row {
   };
 }
 
-function groupRow(group: Group): Row {
+function groupRow(group: Group, memberCount: number): Row {
   return {
     "Group ID": group.id,
     "Created at": group.createdAt,
@@ -98,29 +105,25 @@ function groupRow(group: Group): Row {
     "Organiser phone": group.organizerPhone ?? "",
     ...profileColumns(group.organizerProfile),
     "Group total (₦)": Math.round(group.totalUnits * 1_000_000),
-    Deadline: group.deadline,
-    "Invite link": `${window.location.origin}/give/group/${group.id}/join`,
+    People: memberCount,
+    "Due date": group.deadline,
   };
 }
 
-function memberRow(member: GroupMember, group: Group | null): Row {
+function memberRow(member: GroupMember, group: Group, pledge: Pledge): Row {
   return {
     "Member ID": member.id,
-    "Joined at": member.createdAt,
+    "Added at": member.createdAt,
     "Group ID": member.groupId,
-    Organiser: group?.organizerName ?? "",
-    Tier: tierName(group?.tier),
+    "Pledge ID": pledge.id,
+    Organiser: group.organizerName,
+    Tier: tierName(group.tier),
+    Role: member.isOrganizer ? "Organiser" : "Member",
     Name: member.name,
     Email: member.email,
     Phone: member.phone ?? "",
-    ...profileColumns(member.profile),
     "Share (₦)": member.committedAmountNaira,
-    Status: member.pledgeId
-      ? "Pledged"
-      : member.status === "confirmed"
-        ? "Confirmed"
-        : "Awaiting email confirmation",
-    "Pledge ID": member.pledgeId ?? "",
+    "Group total (₦)": pledge.amountNaira,
   };
 }
 
@@ -128,25 +131,28 @@ function memberRow(member: GroupMember, group: Group | null): Row {
 export function withSheetSync(store: DataStore): DataStore {
   if (!isSheetSyncConfigured) return store;
 
-  const syncMember = async (member: GroupMember) => {
-    const group = await store.getGroup(member.groupId);
-    send("Group members", member.id, memberRow(member, group));
-  };
-
   return {
     getCampaignProgress: (...args) => store.getCampaignProgress(...args),
     getPledge: (...args) => store.getPledge(...args),
     getPledgesByEmail: (...args) => store.getPledgesByEmail(...args),
     getGroup: (...args) => store.getGroup(...args),
-    getGroupByInviteCode: (...args) => store.getGroupByInviteCode(...args),
     getGroupMembers: (...args) => store.getGroupMembers(...args),
-    getGroupMember: (...args) => store.getGroupMember(...args),
-    getGroupMembershipsByEmail: (...args) => store.getGroupMembershipsByEmail(...args),
 
     async createIndividualPledge(input) {
       const pledge = await store.createIndividualPledge(input);
       send("Pledges", pledge.id, pledgeRow(pledge));
       return pledge;
+    },
+
+    async createGroupPledge(input) {
+      const created = await store.createGroupPledge(input);
+      const { group, members, pledge } = created;
+      send("Groups", group.id, groupRow(group, members.length));
+      for (const member of members) {
+        send("Group members", member.id, memberRow(member, group, pledge));
+      }
+      send("Pledges", pledge.id, pledgeRow(pledge));
+      return created;
     },
 
     async markInstallmentPaid(pledgeId, installmentId, confirmation) {
@@ -157,32 +163,6 @@ export function withSheetSync(store: DataStore): DataStore {
         send("Payments", installment.id, paymentRow(pledge, installment));
         send("Pledges", pledge.id, pledgeRow(pledge));
       }
-    },
-
-    async createGroup(input) {
-      const group = await store.createGroup(input);
-      send("Groups", group.id, groupRow(group));
-      return group;
-    },
-
-    async joinGroup(groupId, input) {
-      const member = await store.joinGroup(groupId, input);
-      void syncMember(member);
-      return member;
-    },
-
-    async confirmGroupMemberByToken(token) {
-      const member = await store.confirmGroupMemberByToken(token);
-      void syncMember(member);
-      return member;
-    },
-
-    async completeGroupMemberPledge(input) {
-      const pledge = await store.completeGroupMemberPledge(input);
-      send("Pledges", pledge.id, pledgeRow(pledge));
-      const member = await store.getGroupMember(input.memberId);
-      if (member) void syncMember(member);
-      return pledge;
     },
   };
 }

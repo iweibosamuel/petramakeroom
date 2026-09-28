@@ -1,11 +1,9 @@
 import { v4 as uuid } from "uuid";
-import { sendGroupConfirmationEmail } from "./email";
 import type {
-  CompleteGroupMemberPledgeInput,
-  CreateGroupInput,
+  CreatedGroupPledge,
+  CreateGroupPledgeInput,
   CreateIndividualPledgeInput,
   DataStore,
-  JoinGroupInput,
 } from "./dataStore";
 import type {
   Campaign,
@@ -72,10 +70,6 @@ function saveDb(db: Db) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
 }
 
-function generateInviteCode(): string {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
-}
-
 export class LocalDataStore implements DataStore {
   async getCampaignProgress(campaignId: string): Promise<CampaignProgress> {
     const db = loadDb();
@@ -131,8 +125,17 @@ export class LocalDataStore implements DataStore {
   async getPledgesByEmail(email: string): Promise<Pledge[]> {
     const db = loadDb();
     const normalized = email.trim().toLowerCase();
+    const memberGroupIds = new Set(
+      db.groupMembers
+        .filter((m) => m.email.trim().toLowerCase() === normalized)
+        .map((m) => m.groupId),
+    );
     return db.pledges
-      .filter((p) => p.donorEmail.trim().toLowerCase() === normalized)
+      .filter(
+        (p) =>
+          p.donorEmail.trim().toLowerCase() === normalized ||
+          (p.kind === "group" && p.groupId && memberGroupIds.has(p.groupId)),
+      )
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -156,8 +159,11 @@ export class LocalDataStore implements DataStore {
     saveDb(db);
   }
 
-  async createGroup(input: CreateGroupInput): Promise<Group> {
+  async createGroupPledge(input: CreateGroupPledgeInput): Promise<CreatedGroupPledge> {
     const db = loadDb();
+    const now = new Date().toISOString();
+    const totalNaira = input.members.reduce((sum, m) => sum + m.amountNaira, 0);
+
     const group: Group = {
       id: uuid(),
       campaignId: input.campaignId,
@@ -166,14 +172,43 @@ export class LocalDataStore implements DataStore {
       organizerEmail: input.organizerEmail,
       organizerPhone: input.organizerPhone,
       organizerProfile: input.organizerProfile,
-      totalUnits: input.totalUnits,
+      totalUnits: totalNaira / 1_000_000,
       deadline: input.deadline,
-      inviteCode: generateInviteCode(),
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     };
+    const members: GroupMember[] = input.members.map((m, index) => ({
+      id: uuid(),
+      groupId: group.id,
+      name: m.name,
+      email: m.email,
+      phone: m.phone,
+      committedAmountNaira: m.amountNaira,
+      isOrganizer: index === 0,
+      createdAt: now,
+    }));
+    const pledge: Pledge = {
+      id: uuid(),
+      campaignId: input.campaignId,
+      kind: "group",
+      tier: input.tier,
+      groupId: group.id,
+      donorName: input.organizerName,
+      donorEmail: input.organizerEmail,
+      donorPhone: input.organizerPhone,
+      donorProfile: input.organizerProfile,
+      units: totalNaira / 1_000_000,
+      amountNaira: totalNaira,
+      deadline: input.deadline,
+      paymentPlan: { type: input.paymentPlan, installments: input.installments },
+      amountPaid: 0,
+      createdAt: now,
+    };
+
     db.groups.push(group);
+    db.groupMembers.push(...members);
+    db.pledges.push(pledge);
     saveDb(db);
-    return group;
+    return { group, members, pledge };
   }
 
   async getGroup(groupId: string): Promise<Group | null> {
@@ -181,106 +216,10 @@ export class LocalDataStore implements DataStore {
     return db.groups.find((g) => g.id === groupId) ?? null;
   }
 
-  async getGroupByInviteCode(inviteCode: string): Promise<Group | null> {
-    const db = loadDb();
-    return (
-      db.groups.find(
-        (g) => g.inviteCode.toUpperCase() === inviteCode.toUpperCase(),
-      ) ?? null
-    );
-  }
-
-  async joinGroup(
-    groupId: string,
-    input: JoinGroupInput,
-  ): Promise<GroupMember> {
-    const db = loadDb();
-    const group = db.groups.find((g) => g.id === groupId);
-    if (!group) throw new Error(`Group ${groupId} not found`);
-
-    const member: GroupMember = {
-      id: uuid(),
-      groupId,
-      name: input.name,
-      email: input.email,
-      phone: input.phone,
-      profile: input.profile,
-      committedAmountNaira: input.committedAmountNaira,
-      status: "pending",
-      confirmationToken: uuid(),
-      createdAt: new Date().toISOString(),
-    };
-    db.groupMembers.push(member);
-    saveDb(db);
-
-    await sendGroupConfirmationEmail({
-      to: member.email,
-      name: member.name,
-      groupOrganizerName: group.organizerName,
-      confirmationToken: member.confirmationToken,
-      committedAmountNaira: member.committedAmountNaira,
-    });
-
-    return member;
-  }
-
   async getGroupMembers(groupId: string): Promise<GroupMember[]> {
     const db = loadDb();
-    return db.groupMembers.filter((m) => m.groupId === groupId);
-  }
-
-  async getGroupMember(memberId: string): Promise<GroupMember | null> {
-    const db = loadDb();
-    return db.groupMembers.find((m) => m.id === memberId) ?? null;
-  }
-
-  async getGroupMembershipsByEmail(email: string): Promise<GroupMember[]> {
-    const db = loadDb();
-    const normalized = email.trim().toLowerCase();
     return db.groupMembers
-      .filter((m) => m.email.trim().toLowerCase() === normalized)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }
-
-  async confirmGroupMemberByToken(token: string): Promise<GroupMember> {
-    const db = loadDb();
-    const member = db.groupMembers.find((m) => m.confirmationToken === token);
-    if (!member) throw new Error("Invalid or expired confirmation link");
-    member.status = "confirmed";
-    saveDb(db);
-    return member;
-  }
-
-  async completeGroupMemberPledge(
-    input: CompleteGroupMemberPledgeInput,
-  ): Promise<Pledge> {
-    const db = loadDb();
-    const member = db.groupMembers.find((m) => m.id === input.memberId);
-    if (!member) throw new Error(`Group member ${input.memberId} not found`);
-    const group = db.groups.find((g) => g.id === member.groupId);
-    if (!group) throw new Error(`Group ${member.groupId} not found`);
-
-    const pledge: Pledge = {
-      id: uuid(),
-      campaignId: group.campaignId,
-      kind: "group_member",
-      // Groups saved before tiers existed are Burden Bearer groups.
-      tier: group.tier ?? "burden_bearer",
-      groupId: group.id,
-      donorName: member.name,
-      donorEmail: member.email,
-      donorPhone: member.phone,
-      donorProfile: member.profile,
-      units: member.committedAmountNaira / 1_000_000,
-      amountNaira: member.committedAmountNaira,
-      deadline: input.deadline,
-      paymentPlan: { type: input.paymentPlan, installments: input.installments },
-      amountPaid: 0,
-      createdAt: new Date().toISOString(),
-    };
-    db.pledges.push(pledge);
-    member.pledgeId = pledge.id;
-    saveDb(db);
-    return pledge;
+      .filter((m) => m.groupId === groupId)
+      .sort((a, b) => Number(b.isOrganizer ?? false) - Number(a.isOrganizer ?? false));
   }
 }

@@ -23,37 +23,40 @@ export interface CreateIndividualPledgeInput {
   installments: Installment[];
 }
 
-export interface CreateGroupInput {
+export interface NewGroupMember {
+  name: string;
+  email: string;
+  phone: string;
+  amountNaira: number;
+}
+
+export interface CreateGroupPledgeInput {
   campaignId: string;
   tier: GivingTier;
   organizerName: string;
   organizerEmail: string;
   organizerPhone: string;
   organizerProfile: DonorProfile;
-  totalUnits: number;
-  deadline: string;
-}
-
-export interface JoinGroupInput {
-  name: string;
-  email: string;
-  phone: string;
-  profile: DonorProfile;
-  committedAmountNaira: number;
-}
-
-export interface CompleteGroupMemberPledgeInput {
-  memberId: string;
+  // Everyone giving, organiser first. Shares add up to the group's total.
+  members: NewGroupMember[];
   deadline: string;
   paymentPlan: PaymentPlanType;
   installments: Installment[];
+}
+
+export interface CreatedGroupPledge {
+  group: Group;
+  members: GroupMember[];
+  pledge: Pledge;
 }
 
 export interface DataStore {
   getCampaignProgress(campaignId: string): Promise<CampaignProgress>;
 
   createIndividualPledge(input: CreateIndividualPledgeInput): Promise<Pledge>;
+  createGroupPledge(input: CreateGroupPledgeInput): Promise<CreatedGroupPledge>;
   getPledge(pledgeId: string): Promise<Pledge | null>;
+  // Pledges made with this email, plus group seeds this email is part of.
   getPledgesByEmail(email: string): Promise<Pledge[]>;
   markInstallmentPaid(
     pledgeId: string,
@@ -61,16 +64,6 @@ export interface DataStore {
     confirmation: PaymentConfirmation,
   ): Promise<void>;
 
-  createGroup(input: CreateGroupInput): Promise<Group>;
   getGroup(groupId: string): Promise<Group | null>;
-  getGroupByInviteCode(inviteCode: string): Promise<Group | null>;
-
-  joinGroup(groupId: string, input: JoinGroupInput): Promise<GroupMember>;
   getGroupMembers(groupId: string): Promise<GroupMember[]>;
-  getGroupMember(memberId: string): Promise<GroupMember | null>;
-  getGroupMembershipsByEmail(email: string): Promise<GroupMember[]>;
-  confirmGroupMemberByToken(token: string): Promise<GroupMember>;
-  completeGroupMemberPledge(
-    input: CompleteGroupMemberPledgeInput,
-  ): Promise<Pledge>;
 }

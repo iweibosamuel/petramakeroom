@@ -32,6 +32,7 @@ export interface PaymentPlanFormResult {
 
 interface PaymentPlanFormProps {
   totalAmountNaira: number;
+  amountLabel?: string;
   maxDeadline?: string;
   submitLabel?: string;
   onSubmit: (result: PaymentPlanFormResult) => Promise<void>;
@@ -45,12 +46,17 @@ interface DraftInstallment {
 
 export const PaymentPlanForm = ({
   totalAmountNaira,
+  amountLabel = "You're giving",
   maxDeadline,
   submitLabel = "Confirm",
   onSubmit,
 }: PaymentPlanFormProps): JSX.Element => {
   const today = todayIso();
-  const latestDeadline = maxDeadline ?? maxDeadlineIso();
+  // A group's own deadline can be earlier, but never later than the cut-off.
+  const latestDeadline =
+    maxDeadline && maxDeadline < maxDeadlineIso() ? maxDeadline : maxDeadlineIso();
+  // Once the cut-off has passed, giving now is the only option.
+  const canSchedule = latestDeadline > today;
 
   const [timing, setTiming] = useState<"now" | "later">("now");
   const [deadline, setDeadline] = useState(latestDeadline);
@@ -182,7 +188,7 @@ export const PaymentPlanForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
-      <p className="text-base text-slate-500">You're giving</p>
+      <p className="text-base text-slate-500">{amountLabel}</p>
       <div className="mt-2">
         <BigAmount text={formatNaira(totalAmountNaira)} />
       </div>
@@ -201,13 +207,15 @@ export const PaymentPlanForm = ({
                 : "All at once"
           }
           action={
-            <button
-              type="button"
-              onClick={() => setTiming(timing === "now" ? "later" : "now")}
-              className={pillButtonClass}
-            >
-              {timing === "now" ? "Schedule" : "Give now"}
-            </button>
+            canSchedule ? (
+              <button
+                type="button"
+                onClick={() => setTiming(timing === "now" ? "later" : "now")}
+                className={pillButtonClass}
+              >
+                {timing === "now" ? "Schedule" : "Give now"}
+              </button>
+            ) : undefined
           }
         />
       </div>

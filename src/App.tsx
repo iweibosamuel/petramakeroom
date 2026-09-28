@@ -4,10 +4,6 @@ import { GiveLanding } from "./screens/Give/GiveLanding";
 import { IndividualGive } from "./screens/Give/IndividualGive";
 import { TierHome } from "./screens/Give/TierHome";
 import { GroupCreate } from "./screens/Give/GroupCreate";
-import { GroupHub } from "./screens/Give/GroupHub";
-import { GroupJoin } from "./screens/Give/GroupJoin";
-import { GroupConfirm } from "./screens/Give/GroupConfirm";
-import { GroupMemberPledge } from "./screens/Give/GroupMemberPledge";
 import { PledgeSchedule } from "./screens/Give/PledgeSchedule";
 import { MyGiving } from "./screens/Give/MyGiving";
 
@@ -44,13 +40,8 @@ export const App = (): JSX.Element => {
           path="/give/group/new"
           element={<Navigate to="/give/burden-bearer/group/new" replace />}
         />
-        <Route path="/give/group/:groupId" element={<GroupHub />} />
-        <Route path="/give/group/:groupId/join" element={<GroupJoin />} />
-        <Route path="/give/group/confirm/:token" element={<GroupConfirm />} />
-        <Route
-          path="/give/group/member/:memberId/pledge"
-          element={<GroupMemberPledge />}
-        />
+        {/* Invite / join / confirm links from the old group flow. */}
+        <Route path="/give/group/*" element={<Navigate to="/give" replace />} />
         <Route path="/give/schedule/:pledgeId" element={<PledgeSchedule />} />
         <Route path="/give/my" element={<MyGiving />} />
       </Routes>

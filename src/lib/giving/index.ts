@@ -12,4 +12,3 @@ export const dataStore: DataStore = withSheetSync(
 
 export * from "./types";
 export * from "./dataStore";
-export { getLocalOutbox } from "./email";

@@ -37,30 +37,35 @@ mode using `localStorage` as a mock backend — no setup needed to click
 through it. To go live with a real backend:
 
 1. Create a Supabase project, then run the files in `supabase/migrations/`
-   in order (`0001_init.sql`, `0002_tiers_and_donor_profile.sql`, then
-   `0003_payment_confirmation.sql`)
+   in order (`0001_init.sql`, `0002_tiers_and_donor_profile.sql`,
+   `0003_payment_confirmation.sql`, `0004_fix_amount_paid.sql`, then
+   `0005_group_seeds.sql`)
    against it (SQL editor or `supabase db push`).
 2. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and
    `VITE_SUPABASE_ANON_KEY` from your project's API settings. The app
    auto-switches from the local mock store to Supabase once these are set.
-3. Deploy the email function and set its secrets:
-   ```
-   supabase functions deploy send-group-confirmation
-   supabase secrets set SENDGRID_API_KEY=... SENDGRID_FROM_EMAIL=you@yourdomain.com
-   ```
-   Until `SENDGRID_API_KEY` is set, the function logs instead of sending.
-4. Payment gateway: not wired up yet (see `src/lib/giving/payments.ts`).
-   Pledges and schedules are recorded either way; actual charging is a TODO
-   until a gateway is chosen — add a `PaymentProvider` implementation there
-   once you have credentials.
+3. Group emails: when someone gives as a group, a Netlify Function
+   (`netlify/functions/send-group-emails.mts`) emails everyone listed their
+   share via Resend. In Netlify → Environment variables set
+   `RESEND_API_KEY` (server-only — no `VITE_` prefix) and, once a domain is
+   verified in Resend, `RESEND_FROM` (e.g. `Petra Make Room <giving@petracc.org>`)
+   and optionally `RESEND_REPLY_TO`. Until then emails come from
+   `onboarding@resend.dev`, which only delivers to the Resend account owner.
+   `netlify.toml` configures the function and the single-page-app redirect.
+4. Payments: there's no gateway integration. Givers pay via the Paystack,
+   Flutterwave, bank or Zelle details shown, then confirm with "I've paid".
 
 Google Sheet: every submission (pledges, confirmed payments, groups, group
 members) can also be copied into a Google Sheet — see
 [`google-sheets/README.md`](google-sheets/README.md) for the 5-minute setup.
 
-Note: this MVP has no login system — group members are identified by the
-invite link and a confirmation-token link (like a shared Google Doc), not a
-signed-in session. The database RLS policies are permissive to match that.
+Groups: giving as a group records that several people are giving one seed
+together. The organiser lists everyone (name, email, phone, amount); it's a
+single pledge that anyone in the group can pay from the seed page link.
+
+Note: this MVP has no login system — a seed page is reachable by anyone with
+its link (like a shared Google Doc). The database RLS policies are permissive
+to match that.
 
 "My giving" (`/give/my`) follows the same model: the browser remembers your
 email locally so you're recognized automatically on return visits, and
