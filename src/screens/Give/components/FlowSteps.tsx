@@ -38,9 +38,23 @@ export const AmountStep = ({
   onBack,
   onContinue,
 }: AmountStepProps): JSX.Element => {
-  const [amountNaira, setAmountNaira] = useState(initialAmountNaira);
+  const hasMinimum = minNaira > 1;
+  // Tiers with a minimum (Centurion) start at that minimum, so the amount is
+  // never below it unless the giver is mid-edit.
+  const [amountNaira, setAmountNaira] = useState(
+    () => initialAmountNaira || (hasMinimum ? minNaira : 0),
+  );
   const [error, setError] = useState<string | null>(null);
   const amountText = amountNaira ? amountNaira.toLocaleString("en-NG") : "";
+  const belowMinimum = hasMinimum && amountNaira < minNaira;
+  const aboveMaximum = maxNaira !== undefined && amountNaira > maxNaira;
+  const canContinue = amountNaira > 0 && !belowMinimum && !aboveMaximum;
+
+  // Leaving the field with an out-of-range amount snaps it back into range.
+  function clampAmount() {
+    if (belowMinimum) setAmountNaira(minNaira);
+    else if (aboveMaximum) setAmountNaira(maxNaira);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -85,10 +99,32 @@ export const AmountStep = ({
               placeholder="0"
               className="w-full min-w-0 bg-transparent placeholder:text-black/20 focus:outline-none"
               value={amountText}
-              onChange={(e) => setAmountNaira(parseNairaInput(e.target.value))}
+              onChange={(e) => {
+                setError(null);
+                setAmountNaira(parseNairaInput(e.target.value));
+              }}
+              onBlur={clampAmount}
+              aria-describedby={hasMinimum ? "amount-range" : undefined}
+              aria-invalid={belowMinimum || aboveMaximum}
             />
           </div>
         </div>
+        {hasMinimum && (
+          <p
+            id="amount-range"
+            className={`mt-3 text-sm font-semibold ${
+              belowMinimum || aboveMaximum ? "text-red-600" : "text-slate-500"
+            }`}
+          >
+            {belowMinimum
+              ? `${tier.name} seeds start at ${formatNaira(minNaira)}`
+              : aboveMaximum && maxNaira
+                ? `${tier.name} seeds go up to ${formatNaira(maxNaira)}`
+                : maxNaira
+                  ? `${formatNaira(minNaira)} to ${formatNaira(maxNaira)}`
+                  : `Minimum ${formatNaira(minNaira)}`}
+          </p>
+        )}
 
         {minNaira > 1 && tier.quickAmountsNaira && (
           <fieldset className="mt-8">
@@ -129,7 +165,7 @@ export const AmountStep = ({
         {error && <p className={errorTextClass}>{error}</p>}
 
         <StickyAction>
-          <button type="submit" className={primaryButtonClass}>
+          <button type="submit" className={primaryButtonClass} disabled={!canContinue}>
             Continue
           </button>
         </StickyAction>
