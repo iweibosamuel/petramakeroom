@@ -17,17 +17,27 @@
       ]
     },
     {
+      "id": "src/screens/Give/TierHome.tsx",
+      "label": "TierHome",
+      "routes": [
+        "/give/burden-bearer",
+        "/give/centurion"
+      ]
+    },
+    {
       "id": "src/screens/Give/IndividualGive.tsx",
       "label": "IndividualGive",
       "routes": [
-        "/give/individual"
+        "/give/burden-bearer/individual",
+        "/give/centurion/individual"
       ]
     },
     {
       "id": "src/screens/Give/GroupCreate.tsx",
       "label": "GroupCreate",
       "routes": [
-        "/give/group/new"
+        "/give/burden-bearer/group/new",
+        "/give/centurion/group/new"
       ]
     },
     {
@@ -107,38 +117,6 @@
       }
     },
     {
-      "id": "src/screens/Give/GiveLanding.tsx:33:8-to-src/screens/Give/IndividualGive.tsx",
-      "source": "src/screens/Give/GiveLanding.tsx",
-      "target": "src/screens/Give/IndividualGive.tsx",
-      "data": {
-        "viaRoute": "/give/individual",
-        "trigger": {
-          "element": "<Link to=\"/give/individual\" className={primaryButtonClass + \" text-center\"}>\n          Give as an individual\n        </Link>",
-          "line": 33,
-          "endLine": 35,
-          "column": 8,
-          "endColumn": 15,
-          "sourceFile": "src/screens/Give/GiveLanding.tsx"
-        }
-      }
-    },
-    {
-      "id": "src/screens/Give/GiveLanding.tsx:36:8-to-src/screens/Give/GroupCreate.tsx",
-      "source": "src/screens/Give/GiveLanding.tsx",
-      "target": "src/screens/Give/GroupCreate.tsx",
-      "data": {
-        "viaRoute": "/give/group/new",
-        "trigger": {
-          "element": "<Link to=\"/give/group/new\" className={secondaryButtonClass + \" text-center\"}>\n          Give as a group\n        </Link>",
-          "line": 36,
-          "endLine": 38,
-          "column": 8,
-          "endColumn": 15,
-          "sourceFile": "src/screens/Give/GiveLanding.tsx"
-        }
-      }
-    },
-    {
       "id": "src/screens/Give/GiveLanding.tsx:43:8-to-src/screens/Give/MyGiving.tsx",
       "source": "src/screens/Give/GiveLanding.tsx",
       "target": "src/screens/Give/MyGiving.tsx",
@@ -151,6 +129,38 @@
           "column": 8,
           "endColumn": 15,
           "sourceFile": "src/screens/Give/GiveLanding.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/components/GiveShell.tsx:32:8-to-src/screens/MakeRoom/MakeRoom.tsx",
+      "source": "src/screens/Give/GiveLanding.tsx",
+      "target": "src/screens/MakeRoom/MakeRoom.tsx",
+      "data": {
+        "viaRoute": "/",
+        "trigger": {
+          "element": "<Link to=\"/\" className=\"mb-6 h-24 w-24\">\n          <img\n            src=\"/images/Petra%20logo.png\"\n            alt=\"Petra logo\"\n            className=\"h-24 w-24 rounded-full object-cover\"\n          />\n        </Link>",
+          "line": 32,
+          "endLine": 38,
+          "column": 8,
+          "endColumn": 15,
+          "sourceFile": "src/screens/Give/components/GiveShell.tsx"
+        }
+      }
+    },
+    {
+      "id": "src/screens/Give/TierHome.tsx:39:4-to-src/screens/Give/GiveLanding.tsx",
+      "source": "src/screens/Give/TierHome.tsx",
+      "target": "src/screens/Give/GiveLanding.tsx",
+      "data": {
+        "viaRoute": "/give",
+        "trigger": {
+          "element": "<GiveShell title={tier.name} subtitle={tier.description} backTo=\"/give\">\n      {progress && (\n        <div className=\"mb-6\">\n          <p className=\"text-base text-slate-500\">Campaign goal</p>\n          <p className=\"mt-2 font-drum text-[clamp(2rem,9vw,3rem)] font-bold leading-none text-black\">\n            {formatNairaWords(progress.campaign.goalNaira)}\n          </p>\n        </div>\n      )}\n\n      <p className=\"text-sm text-slate-500\">How would you like to give?</p>\n      <div className=\"mt-2\">\n        {options.map((option, idx) => (\n          <div key={option.to}>\n            {idx > 0 && <Divider />}\n            <Link\n              to={option.to}\n              className=\"-mx-3 block rounded-2xl px-3 transition-colors hover:bg-black/[0.04]\"\n            >\n              <DetailRow\n                icon={option.icon}\n                label={option.label}\n                value={option.value}\n                action={<ChevronRight className=\"h-5 w-5 text-black\" />}\n              />\n            </Link>\n          </div>\n        ))}\n      </div>\n    </GiveShell>",
+          "line": 39,
+          "endLine": 68,
+          "column": 4,
+          "endColumn": 16,
+          "sourceFile": "src/screens/Give/TierHome.tsx"
         }
       }
     },

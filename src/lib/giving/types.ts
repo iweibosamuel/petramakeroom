@@ -3,11 +3,40 @@ export const MAX_DEADLINE_MONTHS = 2;
 
 export type PaymentPlanType = "full" | "installments";
 
+export type GivingTier = "burden_bearer" | "centurion";
+
+// Who the giver is, collected the same way in every flow.
+export interface DonorProfile {
+  location: string;
+  isPetraMember: boolean;
+  campus?: string;
+}
+
+// How a giver says they paid. There's no payment gateway integration, so
+// givers confirm payments themselves and finance reconciles against statements.
+export const PAYMENT_METHODS = [
+  "Paystack",
+  "Flutterwave",
+  "GTBank transfer",
+  "Bank of America transfer",
+  "Zelle",
+] as const;
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+export interface PaymentConfirmation {
+  method: PaymentMethod;
+  reference?: string;
+}
+
 export interface Installment {
   id: string;
   amount: number;
   dueDate: string;
   status: "pending" | "paid";
+  paymentMethod?: PaymentMethod;
+  paymentReference?: string;
+  paidAt?: string;
 }
 
 export interface PaymentPlan {
@@ -21,10 +50,12 @@ export interface Pledge {
   id: string;
   campaignId: string;
   kind: PledgeKind;
+  tier: GivingTier;
   groupId?: string;
   donorName: string;
   donorEmail: string;
   donorPhone?: string;
+  donorProfile?: DonorProfile;
   units: number;
   amountNaira: number;
   deadline: string;
@@ -36,8 +67,11 @@ export interface Pledge {
 export interface Group {
   id: string;
   campaignId: string;
+  tier: GivingTier;
   organizerName: string;
   organizerEmail: string;
+  organizerPhone?: string;
+  organizerProfile?: DonorProfile;
   totalUnits: number;
   deadline: string;
   inviteCode: string;
@@ -52,6 +86,7 @@ export interface GroupMember {
   name: string;
   email: string;
   phone?: string;
+  profile?: DonorProfile;
   committedAmountNaira: number;
   status: GroupMemberStatus;
   confirmationToken: string;

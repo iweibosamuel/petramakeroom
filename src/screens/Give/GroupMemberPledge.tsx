@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { dataStore, type Group, type GroupMember } from "../../lib/giving";
-import { formatDate, formatNaira } from "../../lib/giving/format";
+import { formatDate } from "../../lib/giving/format";
 import { rememberEmail } from "../../lib/giving/rememberedDonor";
 import { GiveShell } from "./components/GiveShell";
 import { PaymentPlanForm, type PaymentPlanFormResult } from "./components/PaymentPlanForm";
@@ -56,8 +56,8 @@ export const GroupMemberPledge = (): JSX.Element => {
 
   return (
     <GiveShell
-      title="Your payment plan"
-      subtitle={`Covering ${formatNaira(member.committedAmountNaira)} — choose your deadline (by ${formatDate(group!.deadline)}) and how you'll pay.`}
+      title="When would you like to give?"
+      subtitle={`Give now, or on any date up to your group's deadline of ${formatDate(group!.deadline)}.`}
     >
       <PaymentPlanForm
         totalAmountNaira={member.committedAmountNaira}

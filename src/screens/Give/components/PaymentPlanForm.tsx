@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import { v4 as uuid } from "uuid";
 import type { Installment, PaymentPlanType } from "../../../lib/giving";
-import { formatNaira, maxDeadlineIso, todayIso } from "../../../lib/giving/format";
+import {
+  formatDate,
+  formatNaira,
+  maxDeadlineIso,
+  todayIso,
+} from "../../../lib/giving/format";
 import {
   errorTextClass,
   helpTextClass,
@@ -9,6 +14,15 @@ import {
   labelClass,
   primaryButtonClass,
 } from "./fieldStyles";
+import { CalendarDays, Wallet, X, Zap } from "lucide-react";
+import {
+  BigAmount,
+  DetailRow,
+  Divider,
+  StickyAction,
+  optionCardClass,
+  pillButtonClass,
+} from "./FlowParts";
 
 export interface PaymentPlanFormResult {
   deadline: string;
@@ -38,6 +52,7 @@ export const PaymentPlanForm = ({
   const today = todayIso();
   const latestDeadline = maxDeadline ?? maxDeadlineIso();
 
+  const [timing, setTiming] = useState<"now" | "later">("now");
   const [deadline, setDeadline] = useState(latestDeadline);
   const [planType, setPlanType] = useState<PaymentPlanType>("full");
   const [installments, setInstallments] = useState<DraftInstallment[]>([
@@ -97,6 +112,17 @@ export const PaymentPlanForm = ({
     e.preventDefault();
     setError(null);
 
+    if (timing === "now") {
+      await submit({
+        deadline: today,
+        paymentPlan: "full",
+        installments: [
+          { id: uuid(), amount: totalAmountNaira, dueDate: today, status: "pending" },
+        ],
+      });
+      return;
+    }
+
     if (!deadline || deadline < today || deadline > latestDeadline) {
       setError("Please choose a valid deadline within the allowed window.");
       return;
@@ -140,9 +166,13 @@ export const PaymentPlanForm = ({
         }));
     }
 
+    await submit({ deadline, paymentPlan: planType, installments: finalInstallments });
+  }
+
+  async function submit(result: PaymentPlanFormResult) {
     setSubmitting(true);
     try {
-      await onSubmit({ deadline, paymentPlan: planType, installments: finalInstallments });
+      await onSubmit(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -151,136 +181,188 @@ export const PaymentPlanForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div>
-        <label className={labelClass} htmlFor="deadline">
-          When will you finish paying?
-        </label>
-        <input
-          id="deadline"
-          type="date"
-          className={inputClass}
-          min={today}
-          max={latestDeadline}
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-          required
+    <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
+      <p className="text-base text-slate-500">You're giving</p>
+      <div className="mt-2">
+        <BigAmount text={formatNaira(totalAmountNaira)} />
+      </div>
+
+      <div className="mt-6">
+        <Divider />
+        <DetailRow
+          icon={timing === "now" ? <Zap /> : <CalendarDays />}
+          label="When"
+          value={timing === "now" ? "Today" : formatDate(deadline)}
+          hint={
+            timing === "now"
+              ? "Pay straight after this step"
+              : planType === "installments"
+                ? `In ${installments.length} part${installments.length === 1 ? "" : "s"}`
+                : "All at once"
+          }
+          action={
+            <button
+              type="button"
+              onClick={() => setTiming(timing === "now" ? "later" : "now")}
+              className={pillButtonClass}
+            >
+              {timing === "now" ? "Schedule" : "Give now"}
+            </button>
+          }
         />
-        <p className={helpTextClass}>Up to 2 months from today.</p>
       </div>
 
-      <div>
-        <span className={labelClass}>How will you pay?</span>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={() => setPlanType("full")}
-            className={`flex-1 rounded-lg border-2 px-4 py-3 text-left text-sm font-semibold transition-colors ${
-              planType === "full"
-                ? "border-[#fa400f] bg-[#fa400f]/5 text-[#fa400f]"
-                : "border-slate-200 text-slate-600 hover:border-slate-300"
-            }`}
-          >
-            Pay in full now
-          </button>
-          <button
-            type="button"
-            onClick={() => setPlanType("installments")}
-            className={`flex-1 rounded-lg border-2 px-4 py-3 text-left text-sm font-semibold transition-colors ${
-              planType === "installments"
-                ? "border-[#fa400f] bg-[#fa400f]/5 text-[#fa400f]"
-                : "border-slate-200 text-slate-600 hover:border-slate-300"
-            }`}
-          >
-            Split into installments
-          </button>
-        </div>
-      </div>
+      {timing === "later" && (
+        <div className="flex flex-col gap-6 pb-4 pt-2">
+          <div>
+            <label className={labelClass} htmlFor="deadline">
+              Due date
+            </label>
+            <input
+              id="deadline"
+              type="date"
+              className={inputClass}
+              min={today}
+              max={latestDeadline}
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              required
+            />
+            <p className={helpTextClass}>
+              Any date up to {formatDate(latestDeadline)}.
+            </p>
+          </div>
 
-      {planType === "installments" && (
-        <div className="rounded-xl border border-slate-200 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-semibold text-slate-700">
-              Installments
-            </span>
-            <div className="flex gap-2">
-              {[2, 3, 4].map((count) => (
-                <button
-                  key={count}
-                  type="button"
-                  onClick={() => splitEvenly(count)}
-                  className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-[#fa400f] hover:text-[#fa400f]"
-                >
-                  Split {count}
-                </button>
-              ))}
+          <div>
+            <span className={labelClass}>How will you pay?</span>
+            <div className="mt-2 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setPlanType("full")}
+                aria-pressed={planType === "full"}
+                className={optionCardClass(planType === "full")}
+              >
+                <span className="block font-bold text-black">All at once</span>
+                <span className="block text-sm text-slate-500">
+                  One payment on your due date
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanType("installments")}
+                aria-pressed={planType === "installments"}
+                className={optionCardClass(planType === "installments")}
+              >
+                <span className="block font-bold text-black">In installments</span>
+                <span className="block text-sm text-slate-500">
+                  Spread it across dates you choose
+                </span>
+              </button>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {installments.map((row, idx) => (
-              <div key={row.key} className="flex items-center gap-2">
-                <input
-                  type="date"
-                  className={`${inputClass} mt-0`}
-                  min={today}
-                  max={deadline}
-                  value={row.dueDate}
-                  onChange={(e) =>
-                    updateInstallmentRow(row.key, "dueDate", e.target.value)
-                  }
-                  required
-                />
-                <input
-                  type="number"
-                  className={`${inputClass} mt-0`}
-                  placeholder="Amount (₦)"
-                  min={1}
-                  value={row.amount}
-                  onChange={(e) =>
-                    updateInstallmentRow(row.key, "amount", e.target.value)
-                  }
-                  required
-                />
-                {installments.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeInstallmentRow(row.key)}
-                    aria-label={`Remove installment ${idx + 1}`}
-                    className="shrink-0 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600"
-                  >
-                    ✕
-                  </button>
-                )}
+          {planType === "installments" && (
+            <div>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <span className={labelClass}>Installments</span>
+                <div className="flex gap-2">
+                  {[2, 3, 4].map((count) => (
+                    <button
+                      key={count}
+                      type="button"
+                      onClick={() => splitEvenly(count)}
+                      className="rounded-full bg-black/[0.06] px-3 py-1.5 text-xs font-bold text-black hover:bg-black/10"
+                    >
+                      Split {count}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
 
-          <button
-            type="button"
-            onClick={addInstallmentRow}
-            className="mt-3 text-sm font-semibold text-[#fa400f] hover:underline"
-          >
-            + Add another installment
-          </button>
+              <div className="flex flex-col gap-2">
+                {installments.map((row, idx) => (
+                  <div key={row.key} className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      aria-label={`Installment ${idx + 1} date`}
+                      className={`${inputClass} !mt-0 min-w-0`}
+                      min={today}
+                      max={deadline}
+                      value={row.dueDate}
+                      onChange={(e) =>
+                        updateInstallmentRow(row.key, "dueDate", e.target.value)
+                      }
+                      required
+                    />
+                    <input
+                      type="number"
+                      aria-label={`Installment ${idx + 1} amount`}
+                      className={`${inputClass} !mt-0 min-w-0`}
+                      placeholder="Amount (₦)"
+                      min={1}
+                      value={row.amount}
+                      onChange={(e) =>
+                        updateInstallmentRow(row.key, "amount", e.target.value)
+                      }
+                      required
+                    />
+                    {installments.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeInstallmentRow(row.key)}
+                        aria-label={`Remove installment ${idx + 1}`}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-black/5 hover:text-red-600"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
 
-          <p
-            className={`mt-3 text-sm font-semibold ${
-              installmentsTotal === totalAmountNaira
-                ? "text-emerald-600"
-                : "text-slate-500"
-            }`}
-          >
-            Total: {formatNaira(installmentsTotal)} of {formatNaira(totalAmountNaira)}
-          </p>
+              <div className="mt-3 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={addInstallmentRow}
+                  className="text-sm font-bold text-black hover:underline"
+                >
+                  + Add installment
+                </button>
+                <p
+                  className={`text-sm font-semibold ${
+                    installmentsTotal === totalAmountNaira
+                      ? "text-emerald-600"
+                      : "text-slate-500"
+                  }`}
+                >
+                  {formatNaira(installmentsTotal)} of {formatNaira(totalAmountNaira)}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
+      <Divider />
+      <DetailRow
+        icon={<Wallet />}
+        label="Paying with"
+        value="Card, bank transfer or Zelle"
+        hint="Paystack, Flutterwave, GTBank, Bank of America"
+      />
+      <Divider />
+
       {error && <p className={errorTextClass}>{error}</p>}
 
-      <button type="submit" className={primaryButtonClass} disabled={submitting}>
-        {submitting ? "Saving…" : submitLabel}
-      </button>
+      <StickyAction>
+        <button type="submit" className={primaryButtonClass} disabled={submitting}>
+          {submitting
+            ? "Saving…"
+            : timing === "now"
+              ? "Continue to payment"
+              : submitLabel}
+        </button>
+      </StickyAction>
     </form>
   );
 };

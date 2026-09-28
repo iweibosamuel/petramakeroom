@@ -11,9 +11,11 @@ import type {
 import type {
   Campaign,
   CampaignProgress,
+  DonorProfile,
   Group,
   GroupMember,
   Installment,
+  PaymentConfirmation,
   Pledge,
 } from "./types";
 
@@ -26,15 +28,30 @@ function requireClient() {
   return supabase;
 }
 
+function mapProfile(
+  location: string | null,
+  isPetraMember: boolean | null,
+  campus: string | null,
+): DonorProfile | undefined {
+  if (location == null && isPetraMember == null) return undefined;
+  return {
+    location: location ?? "",
+    isPetraMember: Boolean(isPetraMember),
+    campus: campus ?? undefined,
+  };
+}
+
 function mapPledgeRow(row: any, installments: Installment[]): Pledge {
   return {
     id: row.id,
     campaignId: row.campaign_id,
     kind: row.kind,
+    tier: row.tier,
     groupId: row.group_id ?? undefined,
     donorName: row.donor_name,
     donorEmail: row.donor_email,
     donorPhone: row.donor_phone ?? undefined,
+    donorProfile: mapProfile(row.location, row.is_petra_member, row.campus),
     units: Number(row.units),
     amountNaira: Number(row.amount_naira),
     deadline: row.deadline,
@@ -48,8 +65,15 @@ function mapGroupRow(row: any): Group {
   return {
     id: row.id,
     campaignId: row.campaign_id,
+    tier: row.tier,
     organizerName: row.organizer_name,
     organizerEmail: row.organizer_email,
+    organizerPhone: row.organizer_phone ?? undefined,
+    organizerProfile: mapProfile(
+      row.organizer_location,
+      row.organizer_is_petra_member,
+      row.organizer_campus,
+    ),
     totalUnits: Number(row.total_units),
     deadline: row.deadline,
     inviteCode: row.invite_code,
@@ -64,6 +88,7 @@ function mapGroupMemberRow(row: any): GroupMember {
     name: row.name,
     email: row.email,
     phone: row.phone ?? undefined,
+    profile: mapProfile(row.location, row.is_petra_member, row.campus),
     committedAmountNaira: Number(row.committed_amount_naira),
     status: row.status,
     confirmationToken: row.confirmation_token,
@@ -87,6 +112,9 @@ async function fetchInstallments(
     amount: Number(r.amount),
     dueDate: r.due_date,
     status: r.status,
+    paymentMethod: r.payment_method ?? undefined,
+    paymentReference: r.payment_reference ?? undefined,
+    paidAt: r.paid_at ?? undefined,
   }));
 }
 
@@ -159,11 +187,15 @@ export class SupabaseDataStore implements DataStore {
         id: pledgeId,
         campaign_id: input.campaignId,
         kind: "individual",
+        tier: input.tier,
         donor_name: input.donorName,
         donor_email: input.donorEmail,
         donor_phone: input.donorPhone,
+        location: input.donorProfile.location,
+        is_petra_member: input.donorProfile.isPetraMember,
+        campus: input.donorProfile.campus ?? null,
         units: input.units,
-        amount_naira: input.units * 1_000_000,
+        amount_naira: Math.round(input.units * 1_000_000),
         deadline: input.deadline,
         payment_plan_type: input.paymentPlan,
         amount_paid: 0,
@@ -209,6 +241,7 @@ export class SupabaseDataStore implements DataStore {
   async markInstallmentPaid(
     pledgeId: string,
     installmentId: string,
+    confirmation: PaymentConfirmation,
   ): Promise<void> {
     const client = requireClient();
     const { data: installment, error: fetchErr } = await client
@@ -221,7 +254,12 @@ export class SupabaseDataStore implements DataStore {
 
     const { error: updateErr } = await client
       .from("installments")
-      .update({ status: "paid" })
+      .update({
+        status: "paid",
+        payment_method: confirmation.method,
+        payment_reference: confirmation.reference ?? null,
+        paid_at: new Date().toISOString(),
+      })
       .eq("id", installmentId);
     if (updateErr) throw updateErr;
 
@@ -240,8 +278,13 @@ export class SupabaseDataStore implements DataStore {
       .insert({
         id: uuid(),
         campaign_id: input.campaignId,
+        tier: input.tier,
         organizer_name: input.organizerName,
         organizer_email: input.organizerEmail,
+        organizer_phone: input.organizerPhone,
+        organizer_location: input.organizerProfile.location,
+        organizer_is_petra_member: input.organizerProfile.isPetraMember,
+        organizer_campus: input.organizerProfile.campus ?? null,
         total_units: input.totalUnits,
         deadline: input.deadline,
         invite_code: inviteCode,
@@ -294,6 +337,9 @@ export class SupabaseDataStore implements DataStore {
         name: input.name,
         email: input.email,
         phone: input.phone,
+        location: input.profile.location,
+        is_petra_member: input.profile.isPetraMember,
+        campus: input.profile.campus ?? null,
         committed_amount_naira: input.committedAmountNaira,
         status: "pending",
         confirmation_token: uuid(),
@@ -384,10 +430,14 @@ export class SupabaseDataStore implements DataStore {
         id: pledgeId,
         campaign_id: group.campaign_id,
         kind: "group_member",
+        tier: group.tier,
         group_id: group.id,
         donor_name: member.name,
         donor_email: member.email,
         donor_phone: member.phone,
+        location: member.location,
+        is_petra_member: member.is_petra_member,
+        campus: member.campus,
         units: Number(member.committed_amount_naira) / 1_000_000,
         amount_naira: member.committed_amount_naira,
         deadline: input.deadline,

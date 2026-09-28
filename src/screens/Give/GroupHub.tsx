@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { dataStore, type Group, type GroupMember, type Pledge } from "../../lib/giving";
 import { formatDate, formatNaira } from "../../lib/giving/format";
 import { GiveShell } from "./components/GiveShell";
+import { StickyAction } from "./components/FlowParts";
 import { primaryButtonClass } from "./components/fieldStyles";
 
 interface MemberWithPledge {
@@ -76,7 +77,7 @@ export const GroupHub = (): JSX.Element => {
       <div className="mb-6">
         <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
           <div
-            className="h-full rounded-full bg-[#fa400f] transition-all"
+            className="h-full rounded-full bg-black transition-all"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -89,25 +90,25 @@ export const GroupHub = (): JSX.Element => {
         </p>
       </div>
 
-      <div className="mb-6 rounded-xl border border-dashed border-slate-300 p-4">
+      <div className="mb-6 rounded-2xl bg-black/[0.05] p-4">
         <p className="text-sm font-semibold text-slate-700">Invite link</p>
         <div className="mt-2 flex items-center gap-2">
           <input
             readOnly
             value={inviteUrl}
-            className="w-full truncate rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+            className="h-11 w-full truncate rounded-full bg-white px-4 text-sm text-slate-600"
           />
           <button
             type="button"
             onClick={copyInviteLink}
-            className="shrink-0 rounded-lg bg-[#1c2b3a] px-3 py-2 text-sm font-semibold text-white hover:bg-[#132029]"
+            className="h-11 shrink-0 rounded-full bg-black px-5 text-sm font-bold text-white hover:bg-black/85"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
         </div>
       </div>
 
-      <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">
+      <h2 className="mb-3 text-sm text-slate-500">
         Who's in
       </h2>
       <ul className="mb-6 flex flex-col gap-2">
@@ -119,7 +120,7 @@ export const GroupHub = (): JSX.Element => {
         {members.map(({ member, pledge }) => (
           <li
             key={member.id}
-            className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3"
+            className="flex items-center justify-between rounded-2xl bg-black/[0.05] px-4 py-4"
           >
             <div>
               <p className="text-sm font-semibold text-slate-700">{member.name}</p>
@@ -143,9 +144,11 @@ export const GroupHub = (): JSX.Element => {
         ))}
       </ul>
 
-      <Link to={`/give/group/${group.id}/join`} className={primaryButtonClass + " block text-center"}>
-        Join this group
-      </Link>
+      <StickyAction>
+        <Link to={`/give/group/${group.id}/join`} className={primaryButtonClass}>
+          Join this group
+        </Link>
+      </StickyAction>
     </GiveShell>
   );
 };

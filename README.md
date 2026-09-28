@@ -36,7 +36,9 @@ The individual/group giving flow under `/give` works out of the box in dev
 mode using `localStorage` as a mock backend — no setup needed to click
 through it. To go live with a real backend:
 
-1. Create a Supabase project, then run `supabase/migrations/0001_init.sql`
+1. Create a Supabase project, then run the files in `supabase/migrations/`
+   in order (`0001_init.sql`, `0002_tiers_and_donor_profile.sql`, then
+   `0003_payment_confirmation.sql`)
    against it (SQL editor or `supabase db push`).
 2. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and
    `VITE_SUPABASE_ANON_KEY` from your project's API settings. The app
@@ -51,6 +53,10 @@ through it. To go live with a real backend:
    Pledges and schedules are recorded either way; actual charging is a TODO
    until a gateway is chosen — add a `PaymentProvider` implementation there
    once you have credentials.
+
+Google Sheet: every submission (pledges, confirmed payments, groups, group
+members) can also be copied into a Google Sheet — see
+[`google-sheets/README.md`](google-sheets/README.md) for the 5-minute setup.
 
 Note: this MVP has no login system — group members are identified by the
 invite link and a confirmation-token link (like a shared Google Doc), not a

@@ -12,6 +12,7 @@ import type {
   CampaignProgress,
   Group,
   GroupMember,
+  PaymentConfirmation,
   Pledge,
 } from "./types";
 
@@ -105,11 +106,13 @@ export class LocalDataStore implements DataStore {
       id: uuid(),
       campaignId: input.campaignId,
       kind: "individual",
+      tier: input.tier,
       donorName: input.donorName,
       donorEmail: input.donorEmail,
       donorPhone: input.donorPhone,
+      donorProfile: input.donorProfile,
       units: input.units,
-      amountNaira: input.units * 1_000_000,
+      amountNaira: Math.round(input.units * 1_000_000),
       deadline: input.deadline,
       paymentPlan: { type: input.paymentPlan, installments: input.installments },
       amountPaid: 0,
@@ -136,6 +139,7 @@ export class LocalDataStore implements DataStore {
   async markInstallmentPaid(
     pledgeId: string,
     installmentId: string,
+    confirmation: PaymentConfirmation,
   ): Promise<void> {
     const db = loadDb();
     const pledge = db.pledges.find((p) => p.id === pledgeId);
@@ -145,6 +149,9 @@ export class LocalDataStore implements DataStore {
     );
     if (!installment || installment.status === "paid") return;
     installment.status = "paid";
+    installment.paymentMethod = confirmation.method;
+    installment.paymentReference = confirmation.reference;
+    installment.paidAt = new Date().toISOString();
     pledge.amountPaid += installment.amount;
     saveDb(db);
   }
@@ -154,8 +161,11 @@ export class LocalDataStore implements DataStore {
     const group: Group = {
       id: uuid(),
       campaignId: input.campaignId,
+      tier: input.tier,
       organizerName: input.organizerName,
       organizerEmail: input.organizerEmail,
+      organizerPhone: input.organizerPhone,
+      organizerProfile: input.organizerProfile,
       totalUnits: input.totalUnits,
       deadline: input.deadline,
       inviteCode: generateInviteCode(),
@@ -194,6 +204,7 @@ export class LocalDataStore implements DataStore {
       name: input.name,
       email: input.email,
       phone: input.phone,
+      profile: input.profile,
       committedAmountNaira: input.committedAmountNaira,
       status: "pending",
       confirmationToken: uuid(),
@@ -253,10 +264,13 @@ export class LocalDataStore implements DataStore {
       id: uuid(),
       campaignId: group.campaignId,
       kind: "group_member",
+      // Groups saved before tiers existed are Burden Bearer groups.
+      tier: group.tier ?? "burden_bearer",
       groupId: group.id,
       donorName: member.name,
       donorEmail: member.email,
       donorPhone: member.phone,
+      donorProfile: member.profile,
       units: member.committedAmountNaira / 1_000_000,
       amountNaira: member.committedAmountNaira,
       deadline: input.deadline,

@@ -46,13 +46,13 @@ export const GroupConfirm = (): JSX.Element => {
   return (
     <GiveShell
       title="You're confirmed!"
-      subtitle="Now pick your own deadline and how you'll pay."
+      subtitle="Now choose to give now or on a date that works for you."
     >
       <Link
         to={`/give/group/member/${member.id}/pledge`}
         className={primaryButtonClass + " block text-center"}
       >
-        Set up my payment plan
+        Continue
       </Link>
     </GiveShell>
   );

@@ -1,8 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { dataStore, DEFAULT_CAMPAIGN_ID } from "../../lib/giving";
-import { maxDeadlineIso, todayIso, unitsToNaira, formatNaira } from "../../lib/giving/format";
+import { CalendarDays } from "lucide-react";
+import { dataStore, DEFAULT_CAMPAIGN_ID, type GivingTier } from "../../lib/giving";
+import {
+  formatDate,
+  formatNaira,
+  maxDeadlineIso,
+  nairaToUnits,
+  todayIso,
+} from "../../lib/giving/format";
+import { rememberEmail } from "../../lib/giving/rememberedDonor";
+import { TIERS } from "../../lib/giving/tiers";
 import { GiveShell } from "./components/GiveShell";
+import { BigAmount, DetailRow, Divider, StickyAction } from "./components/FlowParts";
+import {
+  AmountStep,
+  DetailsStep,
+  emptyDonorDetails,
+  type DonorDetails,
+} from "./components/FlowSteps";
 import {
   errorTextClass,
   helpTextClass,
@@ -11,29 +27,22 @@ import {
   primaryButtonClass,
 } from "./components/fieldStyles";
 
-export const GroupCreate = (): JSX.Element => {
+// Amount → your details → when. The organiser sets the group total and the
+// date the group should finish by; members then choose their own share.
+export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element => {
+  const tier = TIERS[tierId];
   const navigate = useNavigate();
-  const [organizerName, setOrganizerName] = useState("");
-  const [organizerEmail, setOrganizerEmail] = useState("");
-  const [totalUnitsStr, setTotalUnitsStr] = useState("2");
+  const [step, setStep] = useState<"amount" | "details" | "deadline">("amount");
+  const [totalNaira, setTotalNaira] = useState(0);
+  const [details, setDetails] = useState<DonorDetails>(emptyDonorDetails);
   const [deadline, setDeadline] = useState(maxDeadlineIso());
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const totalUnits = Number(totalUnitsStr) || 0;
-
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!organizerName.trim() || !organizerEmail.trim()) {
-      setError("Please enter your name and contact email.");
-      return;
-    }
-    if (totalUnits < 1) {
-      setError("Minimum is 1 unit.");
-      return;
-    }
     if (!deadline || deadline < todayIso() || deadline > maxDeadlineIso()) {
-      setError("Please choose a valid deadline within 2 months.");
+      setError(`Please choose a date up to ${formatDate(maxDeadlineIso())}.`);
       return;
     }
     setError(null);
@@ -41,11 +50,15 @@ export const GroupCreate = (): JSX.Element => {
     try {
       const group = await dataStore.createGroup({
         campaignId: DEFAULT_CAMPAIGN_ID,
-        organizerName,
-        organizerEmail,
-        totalUnits,
+        tier: tier.id,
+        organizerName: details.name,
+        organizerEmail: details.email,
+        organizerPhone: details.phone,
+        organizerProfile: details.profile,
+        totalUnits: nairaToUnits(totalNaira),
         deadline,
       });
+      rememberEmail(details.email);
       navigate(`/give/group/${group.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -53,85 +66,88 @@ export const GroupCreate = (): JSX.Element => {
     }
   }
 
+  if (step === "deadline") {
+    return (
+      <GiveShell
+        title="When should your group finish giving?"
+        onBack={() => setStep("details")}
+      >
+        <form onSubmit={handleCreate} className="flex flex-1 flex-col">
+          <p className="text-base text-slate-500">Your group's total</p>
+          <div className="mt-2">
+            <BigAmount text={formatNaira(totalNaira)} />
+          </div>
+
+          <div className="mt-6">
+            <Divider />
+            <DetailRow
+              icon={<CalendarDays />}
+              label="Group deadline"
+              value={deadline ? formatDate(deadline) : "Choose a date"}
+              hint="Members give now or schedule their share before this date"
+            />
+            <Divider />
+          </div>
+
+          <div className="mt-4">
+            <label className={labelClass} htmlFor="deadline">
+              Finish by
+            </label>
+            <input
+              id="deadline"
+              type="date"
+              className={inputClass}
+              min={todayIso()}
+              max={maxDeadlineIso()}
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              required
+            />
+            <p className={helpTextClass}>
+              Any date up to {formatDate(maxDeadlineIso())}.
+            </p>
+          </div>
+
+          {error && <p className={errorTextClass}>{error}</p>}
+
+          <StickyAction>
+            <button type="submit" className={primaryButtonClass} disabled={submitting}>
+              {submitting ? "Creating…" : "Create group"}
+            </button>
+          </StickyAction>
+        </form>
+      </GiveShell>
+    );
+  }
+
+  if (step === "details") {
+    return (
+      <DetailsStep
+        subtitle="You're organising this group. We'll send updates here."
+        initial={details}
+        onBack={() => setStep("amount")}
+        onContinue={(next) => {
+          setDetails(next);
+          setStep("deadline");
+        }}
+      />
+    );
+  }
+
   return (
-    <GiveShell
+    <AmountStep
       title="Start a group"
-      subtitle="Commit to a total, then invite your group to cover it together."
-      backTo="/give"
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div>
-          <label className={labelClass} htmlFor="totalUnits">
-            Total units your group is committing to
-          </label>
-          <input
-            id="totalUnits"
-            type="number"
-            min={1}
-            step={1}
-            className={inputClass}
-            value={totalUnitsStr}
-            onChange={(e) => setTotalUnitsStr(e.target.value)}
-            required
-          />
-          <p className="mt-1 text-sm font-semibold text-[#fa400f]">
-            = {formatNaira(unitsToNaira(totalUnits))}
-          </p>
-        </div>
-
-        <div>
-          <label className={labelClass} htmlFor="deadline">
-            Group deadline
-          </label>
-          <input
-            id="deadline"
-            type="date"
-            className={inputClass}
-            min={todayIso()}
-            max={maxDeadlineIso()}
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            required
-          />
-          <p className={helpTextClass}>
-            Members will choose their own deadline within this window.
-          </p>
-        </div>
-
-        <div>
-          <label className={labelClass} htmlFor="organizerName">
-            Your name
-          </label>
-          <input
-            id="organizerName"
-            type="text"
-            className={inputClass}
-            value={organizerName}
-            onChange={(e) => setOrganizerName(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className={labelClass} htmlFor="organizerEmail">
-            Your email
-          </label>
-          <input
-            id="organizerEmail"
-            type="email"
-            className={inputClass}
-            value={organizerEmail}
-            onChange={(e) => setOrganizerEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        {error && <p className={errorTextClass}>{error}</p>}
-
-        <button type="submit" className={primaryButtonClass} disabled={submitting}>
-          {submitting ? "Creating…" : "Create group & get invite link"}
-        </button>
-      </form>
-    </GiveShell>
+      subtitle="Set your group's total, then invite others to cover it together."
+      tier={tier}
+      label="Your group's total"
+      minNaira={tier.minNaira}
+      maxNaira={tier.maxNaira}
+      initialAmountNaira={totalNaira}
+      backTo={`/give/${tier.slug}`}
+      onContinue={(amount) => {
+        setTotalNaira(amount);
+        setStep("details");
+      }}
+    />
   );
 };

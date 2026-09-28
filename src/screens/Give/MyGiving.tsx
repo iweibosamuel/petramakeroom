@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { dataStore, type GroupMember, type Pledge } from "../../lib/giving";
+import { ChevronRight } from "lucide-react";
+import {
+  dataStore,
+  type GroupMember,
+  type Installment,
+  type Pledge,
+} from "../../lib/giving";
+import { TIERS } from "../../lib/giving/tiers";
+import { ConfirmPaymentSheet } from "./components/ConfirmPaymentSheet";
 import { formatDate, formatNaira } from "../../lib/giving/format";
 import {
   forgetRememberedEmail,
@@ -8,6 +16,7 @@ import {
   rememberEmail,
 } from "../../lib/giving/rememberedDonor";
 import { GiveShell } from "./components/GiveShell";
+import { StickyAction } from "./components/FlowParts";
 import { errorTextClass, inputClass, labelClass, primaryButtonClass } from "./components/fieldStyles";
 
 export const MyGiving = (): JSX.Element => {
@@ -17,6 +26,10 @@ export const MyGiving = (): JSX.Element => {
   const [memberships, setMemberships] = useState<GroupMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<{
+    pledgeId: string;
+    installment: Installment;
+  } | null>(null);
 
   async function lookup(targetEmail: string) {
     setLoading(true);
@@ -82,42 +95,61 @@ export const MyGiving = (): JSX.Element => {
 
         {!loading && pledges.length > 0 && (
           <div className="mb-6">
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">
+            <h2 className="mb-3 text-sm text-slate-500">
               Pledges
             </h2>
             <ul className="flex flex-col gap-2">
-              {pledges.map((pledge) => (
-                <li key={pledge.id}>
-                  <Link
-                    to={`/give/schedule/${pledge.id}`}
-                    className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#fa400f]"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">
-                        {pledge.kind === "group_member" ? "Group pledge" : "Individual pledge"}
+              {pledges.map((pledge) => {
+                const nextPending = pledge.paymentPlan.installments
+                  .filter((i) => i.status !== "paid")
+                  .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
+                return (
+                  <li key={pledge.id} className="rounded-2xl bg-black/[0.05]">
+                    <Link
+                      to={`/give/schedule/${pledge.id}`}
+                      className="flex items-center justify-between gap-3 px-4 pt-4"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm text-slate-500">
+                          {TIERS[pledge.tier ?? "burden_bearer"].name} ·{" "}
+                          {pledge.kind === "group_member" ? "Group" : "Individual"}
+                        </p>
+                        <p className="text-lg font-bold text-black">
+                          {formatNaira(pledge.amountNaira)}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-black" />
+                    </Link>
+                    <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-2">
+                      <p
+                        className={`text-sm font-semibold ${
+                          nextPending ? "text-slate-500" : "text-emerald-700"
+                        }`}
+                      >
+                        {nextPending
+                          ? `${formatNaira(pledge.amountPaid)} paid · next ${formatNaira(nextPending.amount)} due ${formatDate(nextPending.dueDate)}`
+                          : "Fully paid — thank you"}
                       </p>
-                      <p className="text-xs text-slate-400">
-                        Deadline {formatDate(pledge.deadline)}
-                      </p>
+                      {nextPending && (
+                        <button
+                          type="button"
+                          onClick={() => setConfirming({ pledgeId: pledge.id, installment: nextPending })}
+                          className="shrink-0 rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:bg-black/85"
+                        >
+                          I've paid
+                        </button>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-slate-900">
-                        {formatNaira(pledge.amountNaira)}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {formatNaira(pledge.amountPaid)} paid
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
 
         {!loading && membershipsWithoutPledge.length > 0 && (
           <div className="mb-6">
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">
+            <h2 className="mb-3 text-sm text-slate-500">
               Groups you've joined
             </h2>
             <ul className="flex flex-col gap-2">
@@ -129,7 +161,7 @@ export const MyGiving = (): JSX.Element => {
                         ? `/give/group/member/${member.id}/pledge`
                         : `/give/group/${member.groupId}`
                     }
-                    className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:border-[#fa400f]"
+                    className="flex items-center justify-between rounded-2xl bg-black/[0.05] px-4 py-4 transition-colors hover:bg-black/[0.08]"
                   >
                     <div>
                       <p className="text-sm font-semibold text-slate-700">
@@ -145,7 +177,7 @@ export const MyGiving = (): JSX.Element => {
                           : "Pending confirmation"}
                       </p>
                     </div>
-                    <span className="text-xs font-semibold text-[#fa400f]">
+                    <span className="text-xs font-semibold text-black">
                       {member.status === "confirmed" ? "Continue →" : "View group →"}
                     </span>
                   </Link>
@@ -162,6 +194,18 @@ export const MyGiving = (): JSX.Element => {
         >
           Not you? Use a different email
         </button>
+
+        {confirming && (
+          <ConfirmPaymentSheet
+            pledgeId={confirming.pledgeId}
+            installment={confirming.installment}
+            onClose={() => setConfirming(null)}
+            onConfirmed={() => {
+              setConfirming(null);
+              lookup(lookedUpEmail);
+            }}
+          />
+        )}
       </GiveShell>
     );
   }
@@ -171,9 +215,8 @@ export const MyGiving = (): JSX.Element => {
       title="Access your giving"
       subtitle="Enter the email you used when you gave, and we'll pull up your pledges — no need to fill anything in again."
       backTo="/give"
-      centerText
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5">
         <div>
           <label className={labelClass} htmlFor="lookupEmail">
             Email
@@ -190,9 +233,11 @@ export const MyGiving = (): JSX.Element => {
 
         {error && <p className={errorTextClass}>{error}</p>}
 
-        <button type="submit" className={primaryButtonClass} disabled={loading}>
-          {loading ? "Looking…" : "Find my giving"}
-        </button>
+        <StickyAction>
+          <button type="submit" className={primaryButtonClass} disabled={loading}>
+            {loading ? "Looking…" : "Find my giving"}
+          </button>
+        </StickyAction>
       </form>
     </GiveShell>
   );

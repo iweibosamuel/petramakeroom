@@ -48,6 +48,7 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        drum: ['"NaN Drum Extended"', "Helvetica", "sans-serif"],
         sans: [
           "ui-sans-serif",
           "system-ui",
