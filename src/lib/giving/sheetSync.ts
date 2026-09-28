@@ -8,8 +8,15 @@ import type { DonorProfile, Group, GroupMember, Installment, Pledge } from "./ty
 //
 // Syncing is fire-and-forget: it never blocks or fails a giver's submission.
 
-const SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_WEBHOOK_URL;
-const SHEET_TOKEN = import.meta.env.VITE_GOOGLE_SHEET_TOKEN;
+// Built-in defaults so the live site syncs without any hosting setup. VITE_
+// values are bundled into the public JS anyway, so these aren't secrets;
+// setting the env vars overrides them (e.g. to point a test build elsewhere).
+const DEFAULT_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbyJEF0WyqyABg5rxRiXx6wxreNWiGg-lY8OsT0c4UzN2U6_tzmjoC0KS4lfp4qx8UiDmA/exec";
+const DEFAULT_SHEET_TOKEN = "546";
+
+const SHEET_URL = import.meta.env.VITE_GOOGLE_SHEET_WEBHOOK_URL || DEFAULT_SHEET_URL;
+const SHEET_TOKEN = import.meta.env.VITE_GOOGLE_SHEET_TOKEN || DEFAULT_SHEET_TOKEN;
 
 export const isSheetSyncConfigured = Boolean(SHEET_URL);
 

@@ -68,7 +68,7 @@ export const PledgeSchedule = (): JSX.Element => {
   const title = isFullyPaid
     ? "Thank you 🎉"
     : isGivingNow
-      ? "Complete your seed"
+      ? "Make payment"
       : "You're in 🎉";
   const isGroup = pledge.kind === "group";
   // Anyone in a group can open this page from their email and pay, so group
