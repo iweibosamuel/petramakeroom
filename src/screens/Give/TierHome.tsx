@@ -1,25 +1,12 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, User, Users } from "lucide-react";
-import {
-  dataStore,
-  DEFAULT_CAMPAIGN_ID,
-  type CampaignProgress,
-  type GivingTier,
-} from "../../lib/giving";
-import { formatNairaWords } from "../../lib/giving/format";
+import type { GivingTier } from "../../lib/giving";
 import { TIERS } from "../../lib/giving/tiers";
 import { GiveShell } from "./components/GiveShell";
 import { DetailRow, Divider } from "./components/FlowParts";
 
 export const TierHome = ({ tier: tierId }: { tier: GivingTier }): JSX.Element => {
   const tier = TIERS[tierId];
-  const [progress, setProgress] = useState<CampaignProgress | null>(null);
-
-  useEffect(() => {
-    dataStore.getCampaignProgress(DEFAULT_CAMPAIGN_ID).then(setProgress);
-  }, []);
-
   const options = [
     {
       to: `/give/${tier.slug}/individual`,
@@ -37,15 +24,6 @@ export const TierHome = ({ tier: tierId }: { tier: GivingTier }): JSX.Element =>
 
   return (
     <GiveShell title={tier.name} subtitle={tier.description} backTo="/give">
-      {progress && (
-        <div className="mb-6">
-          <p className="text-base text-slate-500">Campaign goal</p>
-          <p className="mt-2 font-drum text-[clamp(2rem,9vw,3rem)] font-bold leading-none text-black">
-            {formatNairaWords(progress.campaign.goalNaira)}
-          </p>
-        </div>
-      )}
-
       <p className="text-sm text-slate-500">How would you like to give?</p>
       <div className="mt-2">
         {options.map((option, idx) => (

@@ -2,24 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 
-const heroTitleLines = [
-  {
-    text: "MAKE",
-    className:
-      "font-drum text-black text-[clamp(6rem,20vw,14rem)] leading-[0.85] font-bold",
-  },
-  {
-    text: "ROOM",
-    className:
-      "font-drum text-black text-[clamp(6rem,20vw,14rem)] leading-[0.8] font-bold",
-  },
-];
 
 const loopWords = ["MORE", "MULTITUDES", "NATIONS"];
 
 const getLoopWordFontSize = (word: string): string => {
   const scale = Math.min(1, loopWords[0].length / word.length);
-  const min = (5 * scale).toFixed(2);
+  const min = (2.5 * scale).toFixed(2);
   const preferred = (16 * scale).toFixed(2);
   const max = (16.5625 * scale).toFixed(2);
   return `clamp(${min}rem, ${preferred}vw, ${max}rem)`;
@@ -57,13 +45,14 @@ export const MakeRoom = (): JSX.Element => {
             alt="Petra logo"
             src="/images/Petra%20logo.svg"
           />
-          <div className="mx-auto flex w-full max-w-[980px] flex-col items-center px-4 text-center [font-family:'Zalando_Sans_SemiExpanded',Helvetica] tracking-[0]">
-            {heroTitleLines.map((line) => (
-              <h1 key={line.text} className={line.className}>
-                {line.text}
-              </h1>
-            ))}
-            <p className="mt-3 text-center text-[clamp(2rem,6vw,5.65rem)] font-bold leading-none tracking-[0] text-[#280084]">
+          <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center px-4 text-center [font-family:'Zalando_Sans_SemiExpanded',Helvetica] tracking-[0]">
+            {/* Scales with the screen so it never overflows a phone; caps at
+                200px on desktop. */}
+            <h1 className="flex flex-col items-center font-drum text-[clamp(2.75rem,15vw,12.5rem)] font-bold leading-[0.82] text-black">
+              <span>MAKE</span>
+              <span>ROOM</span>
+            </h1>
+            <p className="mt-6 text-center text-[clamp(1.5rem,6.6vw,2.95rem)] font-bold leading-none tracking-[0] text-[#280084] sm:mt-8">
               LAGOS X ABUJA
             </p>
             <blockquote className="mt-6 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">

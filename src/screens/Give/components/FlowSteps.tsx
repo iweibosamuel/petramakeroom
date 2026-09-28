@@ -49,11 +49,11 @@ export const AmountStep = ({
       return;
     }
     if (amountNaira < minNaira) {
-      setError(`${tier.name} gifts start at ${formatNaira(minNaira)}.`);
+      setError(`${tier.name} seeds start at ${formatNaira(minNaira)}.`);
       return;
     }
     if (maxNaira && amountNaira > maxNaira) {
-      setError(`${tier.name} gifts go up to ${formatNaira(maxNaira)}.`);
+      setError(`${tier.name} seeds go up to ${formatNaira(maxNaira)}.`);
       return;
     }
     setError(null);

@@ -19,7 +19,7 @@ export const TIERS: Record<GivingTier, TierConfig> = {
     slug: "burden-bearer",
     name: "Burden Bearer",
     description:
-      "Every gift makes a difference. Give any amount as you are led and join us in carrying the vision forward.",
+      "Every seed makes a difference. Give any amount as you are led and join us in carrying the vision forward.",
     amountHint: "Any amount, as you are led",
     accent: "#0339a1",
     minNaira: 1,

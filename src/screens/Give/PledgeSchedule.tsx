@@ -57,10 +57,10 @@ export const PledgeSchedule = (): JSX.Element => {
   const title = isFullyPaid
     ? "Thank you 🎉"
     : isGivingNow
-      ? "Complete your gift"
+      ? "Complete your seed"
       : "You're in 🎉";
   const subtitle = isFullyPaid
-    ? `We've recorded your gift of ${formatNaira(pledge.amountNaira)}, ${pledge.donorName}. God bless you.`
+    ? `We've recorded your seed of ${formatNaira(pledge.amountNaira)}, ${pledge.donorName}. God bless you.`
     : isGivingNow
       ? `Thank you, ${pledge.donorName}. Pay ${formatNaira(pledge.amountNaira)} using any of the options below, then tap “I've paid”.`
       : `Thank you, ${pledge.donorName}. When a payment is due, pay using any of the options below, then tap “I've paid”.`;

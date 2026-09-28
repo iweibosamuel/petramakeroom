@@ -15,7 +15,7 @@ const tiers: GivingTier[] = [
   {
     title: "Burden Bearer",
     description:
-      "Every gift makes a difference. Give any amount as you are led and join us in carrying the vision forward.",
+      "Every seed makes a difference. Give any amount as you are led and join us in carrying the vision forward.",
     image: "/images/BurdenBearer.png",
     imageAlt: "Armoured figure carrying a large boulder on their back",
     to: "/give/burden-bearer",
