@@ -42,7 +42,7 @@ const bankAccounts: BankAccount[] = [
     fields: [
       { label: "Account Name", value: "PETRA CHRISTIAN CENTRE PROGRAM" },
       { label: "Account Number", value: "0558726334" },
-      { label: "Transfer Description", value: "Rain Conference" },
+      { label: "Transfer Description", value: "Make Room Giving" },
     ],
   },
   {
