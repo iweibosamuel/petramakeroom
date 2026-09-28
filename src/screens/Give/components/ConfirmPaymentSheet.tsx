@@ -7,6 +7,7 @@ import {
   type PaymentMethod,
 } from "../../../lib/giving";
 import { formatNaira } from "../../../lib/giving/format";
+import { notifyPaymentConfirmed } from "../../../lib/giving/notifications";
 import { BigAmount } from "./FlowParts";
 import { errorTextClass, inputClass, labelClass, primaryButtonClass } from "./fieldStyles";
 
@@ -56,6 +57,7 @@ export const ConfirmPaymentSheet = ({
         method,
         reference: reference.trim() || undefined,
       });
+      notifyPaymentConfirmed(pledgeId, installment.id);
       onConfirmed();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

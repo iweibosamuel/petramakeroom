@@ -44,14 +44,18 @@ through it. To go live with a real backend:
 2. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and
    `VITE_SUPABASE_ANON_KEY` from your project's API settings. The app
    auto-switches from the local mock store to Supabase once these are set.
-3. Group emails: when someone gives as a group, a Netlify Function
-   (`netlify/functions/send-group-emails.mts`) emails everyone listed their
-   share via Resend. In Netlify → Environment variables set
-   `RESEND_API_KEY` (server-only — no `VITE_` prefix) and, once a domain is
-   verified in Resend, `RESEND_FROM` (e.g. `Petra Make Room <giving@petracc.org>`)
-   and optionally `RESEND_REPLY_TO`. Until then emails come from
-   `onboarding@resend.dev`, which only delivers to the Resend account owner.
-   `netlify.toml` configures the function and the single-page-app redirect.
+3. Emails (Resend, via Netlify Functions in `netlify/functions/`), sent to
+   everyone giving on a pledge — every member of a group seed:
+   - `send-group-emails` — each person's share when a group seed is created.
+   - `send-payment-confirmation` — after someone taps "I've paid".
+   - `send-reminders` — scheduled daily at 8am Lagos time: a payment due in
+     3 days, a payment due today, and a weekly reminder for past-due payments
+     nobody has confirmed yet.
+   All come from `info@petramakeroom.com` with replies going to
+   `no-reply@petramakeroom.com`, so verify `petramakeroom.com` in Resend.
+   In Netlify → Environment variables set `RESEND_API_KEY` (server-only — no
+   `VITE_` prefix). `netlify.toml` configures the functions and the
+   single-page-app redirect.
 4. Payments: there's no gateway integration. Givers pay via the Paystack,
    Flutterwave, bank or Zelle details shown, then confirm with "I've paid".
 
