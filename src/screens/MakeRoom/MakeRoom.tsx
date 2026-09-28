@@ -72,7 +72,7 @@ export const MakeRoom = (): JSX.Element => {
                 {scripture.reference}
               </cite>
             </blockquote>
-            <div className="mt-8 flex w-full max-w-[560px] flex-col gap-4 sm:flex-row-reverse">
+            <div className="mt-8 flex w-full max-w-[560px] flex-col gap-4">
               <Button
                 asChild
                 variant="outline"
