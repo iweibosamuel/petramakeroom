@@ -38,4 +38,20 @@ export const TIERS: Record<GivingTier, TierConfig> = {
   },
 };
 
-export const PETRA_CAMPUSES = ["Lagos", "Abuja"];
+export const PETRA_CAMPUSES = [
+  "Petra Lekki (HQ)",
+  "Petra Wuse",
+  "Petra Ikeja",
+  "Petra Accra",
+  "Petra Mararaba",
+  "Petra Apo",
+  "Petra Kubwa",
+  "Petra Prime Abuja",
+  "Petra Port Harcourt",
+  "Petra Manchester",
+  "Petra London",
+  "Petra Ibadan",
+  "Petra Glasgow",
+  "Petra Hamilton",
+  "Petra Birmingham",
+];

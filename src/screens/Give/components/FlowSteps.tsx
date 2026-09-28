@@ -165,8 +165,6 @@ interface DetailsStepProps {
   onContinue: (details: DonorDetails) => void;
 }
 
-const OTHER_CAMPUS = "Other";
-
 // Step 2 of every flow: who the giver is.
 export const DetailsStep = ({
   title = "Your details",
@@ -178,8 +176,6 @@ export const DetailsStep = ({
   onBack,
   onContinue,
 }: DetailsStepProps): JSX.Element => {
-  const initialCampusIsListed =
-    !initial.profile.campus || PETRA_CAMPUSES.includes(initial.profile.campus);
   const [name, setName] = useState(initial.name);
   const [email, setEmail] = useState(initial.email);
   const [phone, setPhone] = useState(initial.phone);
@@ -187,11 +183,11 @@ export const DetailsStep = ({
   const [isPetraMember, setIsPetraMember] = useState<boolean | null>(
     initial.profile.location ? initial.profile.isPetraMember : null,
   );
-  const [campusChoice, setCampusChoice] = useState(
-    initialCampusIsListed ? (initial.profile.campus ?? "") : OTHER_CAMPUS,
-  );
-  const [otherCampus, setOtherCampus] = useState(
-    initialCampusIsListed ? "" : (initial.profile.campus ?? ""),
+  // Campus must come from the official list.
+  const [campus, setCampus] = useState(
+    initial.profile.campus && PETRA_CAMPUSES.includes(initial.profile.campus)
+      ? initial.profile.campus
+      : "",
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -209,8 +205,7 @@ export const DetailsStep = ({
       setError("Please let us know if you're a Petra member.");
       return;
     }
-    const campus = campusChoice === OTHER_CAMPUS ? otherCampus.trim() : campusChoice;
-    if (isPetraMember && !campus) {
+    if (isPetraMember && !PETRA_CAMPUSES.includes(campus)) {
       setError("Please choose the campus you attend.");
       return;
     }
@@ -322,8 +317,8 @@ export const DetailsStep = ({
             <select
               id="campus"
               className={`${inputClass} appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222%22><path d=%22m6 9 6 6 6-6%22/></svg>')] bg-[length:20px] bg-[right_1rem_center] bg-no-repeat pr-12`}
-              value={campusChoice}
-              onChange={(e) => setCampusChoice(e.target.value)}
+              value={campus}
+              onChange={(e) => setCampus(e.target.value)}
               required
             >
               <option value="" disabled>
@@ -334,19 +329,7 @@ export const DetailsStep = ({
                   {campus}
                 </option>
               ))}
-              <option value={OTHER_CAMPUS}>Other</option>
             </select>
-            {campusChoice === OTHER_CAMPUS && (
-              <input
-                type="text"
-                aria-label="Campus name"
-                placeholder="Campus name"
-                className={inputClass}
-                value={otherCampus}
-                onChange={(e) => setOtherCampus(e.target.value)}
-                required
-              />
-            )}
           </div>
         )}
 
