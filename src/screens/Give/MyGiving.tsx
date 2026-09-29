@@ -7,6 +7,7 @@ import {
   type Installment,
   type Pledge,
 } from "../../lib/giving";
+import { track } from "../../lib/analytics";
 import { TIERS } from "../../lib/giving/tiers";
 import { ConfirmPaymentSheet } from "./components/ConfirmPaymentSheet";
 import { formatDate, formatMoney } from "../../lib/giving/format";
@@ -48,6 +49,7 @@ export const TrackGiving = (): JSX.Element => {
       setError("Enter the email you gave with.");
       return;
     }
+    track("track_giving_lookup");
     navigate(MY_PLEDGES_PATH, { state: { trackGivingEmail: trimmed } satisfies TrackGivingState });
   }
 

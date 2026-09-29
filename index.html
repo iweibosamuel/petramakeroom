@@ -3,6 +3,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<!-- Google Analytics (GA4). Loads only on the live site, so local testing
+     isn't counted. Step events are sent from src/lib/analytics.ts. -->
+<script>
+  if (/(^|\.)petramakeroom\.com$/.test(location.hostname)) {
+    var ga = document.createElement("script");
+    ga.async = true;
+    ga.src = "https://www.googletagmanager.com/gtag/js?id=G-L27B4ZFJMB";
+    document.head.appendChild(ga);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag("js", new Date());
+    gtag("config", "G-L27B4ZFJMB");
+  }
+</script>
 <title>Petra Make Room</title>
 <link rel="icon" type="image/svg+xml" href="/images/Petra%20logo.svg" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />

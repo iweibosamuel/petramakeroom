@@ -8,6 +8,7 @@ import {
 } from "../../../lib/giving";
 import { PAYMENT_METHODS_BY_CURRENCY } from "../../../lib/giving/currency";
 import { formatMoney } from "../../../lib/giving/format";
+import { track } from "../../../lib/analytics";
 import { notifyPaymentConfirmed } from "../../../lib/giving/notifications";
 import { BigAmount } from "./FlowParts";
 import { errorTextClass, inputClass, labelClass, primaryButtonClass } from "./fieldStyles";
@@ -61,6 +62,7 @@ export const ConfirmPaymentSheet = ({
         reference: reference.trim() || undefined,
       });
       notifyPaymentConfirmed(pledgeId, installment.id);
+      track("payment_confirmed", { method, currency, value: installment.amount });
       onConfirmed();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

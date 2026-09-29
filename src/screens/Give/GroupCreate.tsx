@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { track } from "../../lib/analytics";
 import { useNavigate } from "react-router-dom";
 import { Plus, X } from "lucide-react";
 import { dataStore, DEFAULT_CAMPAIGN_ID, type Currency, type GivingTier } from "../../lib/giving";
@@ -74,6 +75,10 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
   const [organizerShare, setOrganizerShare] = useState(0);
   const [members, setMembers] = useState<MemberDraft[]>(() => [newMember()]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    track("pledge_start", { tier: tier.id, type: "group" });
+  }, [tier.id]);
 
   const sharesTotal = organizerShare + members.reduce((sum, m) => sum + m.amount, 0);
 
@@ -153,6 +158,14 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
       });
       rememberDonorDetails(details);
       notifyGroupMembers(pledge.id);
+      track("pledge_created", {
+        tier: tier.id,
+        type: "group",
+        currency,
+        value: total,
+        plan: schedule.paymentPlan,
+        people: members.length + 1,
+      });
       navigate(pledgePath(pledge.id), { state: { justPledged: true } satisfies TrackGivingState });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -296,6 +309,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
         initial={details}
         onBack={back}
         onContinue={(next) => {
+          track("pledge_details", { tier: tier.id, type: "group" });
           setDetails(next);
           goTo("members");
         }}
@@ -320,6 +334,13 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
         setDetails(emptyDonorDetails());
       }}
       onContinue={(result) => {
+        track("pledge_amount", {
+          tier: tier.id,
+          type: "group",
+          currency: result.currency,
+          plan: result.schedule.paymentPlan,
+          returning: Boolean(saved),
+        });
         setTotal(result.amount);
         setCurrency(result.currency);
         setNgnRate(result.ngnRate);

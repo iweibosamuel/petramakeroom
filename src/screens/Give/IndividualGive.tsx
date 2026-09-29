@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { track } from "../../lib/analytics";
 import { useNavigate } from "react-router-dom";
 import { dataStore, DEFAULT_CAMPAIGN_ID, type GivingTier } from "../../lib/giving";
 import { notifyPledgeCreated } from "../../lib/giving/notifications";
@@ -32,6 +33,10 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    track("pledge_start", { tier: tier.id, type: "individual" });
+  }, [tier.id]);
+
   async function createPledge(donor: DonorDetails, chosen: AmountStepResult) {
     setSubmitting(true);
     setError(null);
@@ -52,6 +57,13 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
       });
       rememberDonorDetails(donor);
       notifyPledgeCreated(pledge.id);
+      track("pledge_created", {
+        tier: tier.id,
+        type: "individual",
+        currency: chosen.currency,
+        value: chosen.amount,
+        plan: chosen.schedule.paymentPlan,
+      });
       navigate(pledgePath(pledge.id), { state: { justPledged: true } satisfies TrackGivingState });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -68,6 +80,7 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
         submitting={submitting}
         error={error}
         onContinue={(next) => {
+          track("pledge_details", { tier: tier.id, type: "individual" });
           setDetails(next);
           if (amountResult) createPledge(next, amountResult);
         }}
@@ -94,6 +107,13 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
       submitting={submitting}
       externalError={error}
       onContinue={(result) => {
+        track("pledge_amount", {
+          tier: tier.id,
+          type: "individual",
+          currency: result.currency,
+          plan: result.schedule.paymentPlan,
+          returning: Boolean(saved),
+        });
         setAmountResult(result);
         if (saved) createPledge(saved, result);
         else goTo("details");
