@@ -23,7 +23,7 @@ export const PHASES: GivingPhase[] = [
     goalUsd: 1_000_000,
     startDate: "2026-10-01",
     endDate: "2026-12-31",
-    goals: ["Land", "Leases", "Acquisitions & Permits", "Preparatory civil works"],
+    goals: ["Land (Leases, Acquisitions & Permits)", "Preparatory civil works"],
   },
   { number: 2, title: "Phase 2", goalUsd: 1_000_000, startDate: "2027-01-01", endDate: "2027-03-31" },
   { number: 3, title: "Phase 3", goalUsd: 1_000_000, startDate: "2027-04-01", endDate: "2027-06-30" },

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CalendarDays, HardHat, LandPlot, Lock, ScrollText, Stamp, Target, type LucideIcon } from "lucide-react";
+import { CalendarDays, HardHat, LandPlot, Lock, Target, type LucideIcon } from "lucide-react";
 import { dataStore, DEFAULT_CAMPAIGN_ID } from "../../lib/giving";
 import { getNgnRatesOrLast } from "../../lib/giving/currency";
 import { formatDate, formatMoney } from "../../lib/giving/format";
@@ -24,9 +24,7 @@ function phaseTimeline(phase: GivingPhase): string {
 
 // An icon for each goal; anything else gets a target icon.
 const GOAL_ICONS: Record<string, LucideIcon> = {
-  Land: LandPlot,
-  Leases: ScrollText,
-  "Acquisitions & Permits": Stamp,
+  "Land (Leases, Acquisitions & Permits)": LandPlot,
   "Preparatory civil works": HardHat,
 };
 
@@ -150,7 +148,7 @@ export const GivingProgress = (): JSX.Element | null => {
             <p className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">
               Phase {CURRENT_PHASE.number} goals
             </p>
-            <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+            <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
               {CURRENT_PHASE.goals.map((goal) => {
                 const Icon = GOAL_ICONS[goal] ?? Target;
                 return (
