@@ -13,21 +13,11 @@ interface GivingTier {
 
 const tiers: GivingTier[] = [
   {
-    title: "Burden Bearer",
-    description:
-      "Every seed makes a difference. Give any amount as you are led and join us in carrying the vision forward.",
-    image: "/images/BurdenBearer.png",
-    imageAlt: "Armoured figure carrying a large boulder on their back",
-    to: "/give/burden-bearer",
-    titleClass: "text-[#0339a1]",
-    buttonClass: "bg-[#0339a1] hover:bg-[#0339a1]/90",
-  },
-  {
-    title: "Centurion",
+    title: "Centurions",
     description: (
       <>
-        This is for members who want to give <strong>₦10 million</strong> or
-        more towards the vision and the work God is doing through this ministry.
+        A hundred people giving <strong>₦10 million</strong> each clears the
+        entire budget for the project. Commit to this today.
       </>
     ),
     image: "/images/centurion.png",
@@ -35,6 +25,16 @@ const tiers: GivingTier[] = [
     to: "/give/centurion",
     titleClass: "text-[#a00238]",
     buttonClass: "bg-[#a00238] hover:bg-[#a00238]/90",
+  },
+  {
+    title: "Burden Bearers",
+    description:
+      "Every seed makes a difference. Give any amount as you are led and join us in carrying the vision forward.",
+    image: "/images/BurdenBearer.png",
+    imageAlt: "Armoured figure carrying a large boulder on their back",
+    to: "/give/burden-bearer",
+    titleClass: "text-[#0339a1]",
+    buttonClass: "bg-[#0339a1] hover:bg-[#0339a1]/90",
   },
 ];
 
@@ -102,7 +102,7 @@ export const GiveLanding = (): JSX.Element => {
               />
               <div className="flex flex-1 flex-col gap-3 px-5 pt-5 text-left md:items-center md:gap-[18px] md:px-6 md:pt-6 md:text-center">
                 <h2
-                  className={`font-drum text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold uppercase leading-[1.05] md:max-w-[315px] ${tier.titleClass}`}
+                  className={`font-drum text-[clamp(1.25rem,6vw,1.75rem)] font-bold uppercase md:text-[clamp(1.75rem,3.5vw,2.5rem)] leading-[1.05] ${tier.titleClass}`}
                 >
                   {tier.title}
                 </h2>
