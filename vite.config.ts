@@ -6,5 +6,7 @@ import { defineConfig } from "vite";
 export default defineConfig(({ mode }) => ({
   plugins: [react(), mode === "development" && screenGraphPlugin()],
   publicDir: "./static",
-  base: "./",
+  // Absolute asset paths, so pages opened directly at a nested address
+  // (e.g. /trackgiving/mypledge/<id> from an email) can load the app.
+  base: "/",
 }));
