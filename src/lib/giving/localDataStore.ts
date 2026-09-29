@@ -96,11 +96,15 @@ export class LocalDataStore implements DataStore {
       (sum, p) => sum + p.amountNaira,
       0,
     );
-    const raisedNaira = relevantPledges.reduce(
-      (sum, p) => sum + p.amountPaid * p.ngnRate,
-      0,
-    );
-    const contributorCount = countGivers(relevantPledges, db.groupMembers);
+    // Only payments confirmed with "I've paid", summed from the installments.
+    const confirmed = relevantPledges.map((p) => ({
+      ...p,
+      amountPaid: p.paymentPlan.installments
+        .filter((i) => i.status === "paid")
+        .reduce((sum, i) => sum + i.amount, 0),
+    }));
+    const raisedNaira = confirmed.reduce((sum, p) => sum + p.amountPaid * p.ngnRate, 0);
+    const contributorCount = countGivers(confirmed, db.groupMembers);
 
     return { campaign, pledgedNaira, raisedNaira, contributorCount };
   }

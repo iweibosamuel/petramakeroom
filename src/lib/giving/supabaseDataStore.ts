@@ -158,17 +158,30 @@ export class SupabaseDataStore implements DataStore {
       goalNaira: Number(campaignRow.goal_naira),
     };
 
+    // Progress counts only payments confirmed with "I've paid", summed from
+    // the confirmed installments themselves rather than the pledge's running
+    // amount_paid total, so it can never drift from what was confirmed.
     const { data: pledgeRows, error: pledgeError } = await client
       .from("pledges")
-      .select("amount_naira, amount_paid, ngn_rate, kind, group_id, donor_email")
+      .select("amount_naira, ngn_rate, kind, group_id, donor_email, installments(amount, status)")
       .eq("campaign_id", campaignId);
     if (pledgeError) throw pledgeError;
 
+    const pledges = (pledgeRows ?? []).map((r: any) => ({
+      kind: r.kind,
+      groupId: r.group_id ?? undefined,
+      donorEmail: r.donor_email,
+      amountNaira: Number(r.amount_naira),
+      ngnRate: Number(r.ngn_rate ?? 1),
+      // In the pledge's currency.
+      amountPaid: (r.installments ?? [])
+        .filter((i: any) => i.status === "paid")
+        .reduce((sum: number, i: any) => sum + Number(i.amount), 0),
+    }));
+
     const paidGroupIds = [
       ...new Set(
-        (pledgeRows ?? [])
-          .filter((r: any) => r.kind === "group" && r.group_id && Number(r.amount_paid) > 0)
-          .map((r: any) => r.group_id as string),
+        pledges.filter((p) => p.kind === "group" && p.groupId && p.amountPaid > 0).map((p) => p.groupId!),
       ),
     ];
     const { data: memberRows, error: memberError } = paidGroupIds.length
@@ -176,26 +189,12 @@ export class SupabaseDataStore implements DataStore {
       : { data: [], error: null };
     if (memberError) throw memberError;
 
-    const pledgedNaira = (pledgeRows ?? []).reduce(
-      (sum: number, r: any) => sum + Number(r.amount_naira),
-      0,
-    );
-    const raisedNaira = (pledgeRows ?? []).reduce(
-      (sum: number, r: any) => sum + Number(r.amount_paid) * Number(r.ngn_rate ?? 1),
-      0,
-    );
-
     return {
       campaign,
-      pledgedNaira,
-      raisedNaira,
+      pledgedNaira: pledges.reduce((sum, p) => sum + p.amountNaira, 0),
+      raisedNaira: pledges.reduce((sum, p) => sum + p.amountPaid * p.ngnRate, 0),
       contributorCount: countGivers(
-        (pledgeRows ?? []).map((r: any) => ({
-          kind: r.kind,
-          groupId: r.group_id ?? undefined,
-          donorEmail: r.donor_email,
-          amountPaid: Number(r.amount_paid),
-        })),
+        pledges,
         (memberRows ?? []).map((m: any) => ({ groupId: m.group_id, email: m.email })),
       ),
     };

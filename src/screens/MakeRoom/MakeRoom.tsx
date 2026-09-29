@@ -53,7 +53,7 @@ export const MakeRoom = (): JSX.Element => {
               <span>MAKE</span>
               <span>ROOM</span>
             </h1>
-            <p className="mt-6 text-center text-[clamp(3rem,13.2vw,5.9rem)] font-bold leading-none tracking-[0] text-[#280084] sm:mt-8">
+            <p className="mt-6 text-center text-[clamp(3rem,13.2vw,5.9rem)] font-bold leading-none tracking-[0] text-[#FA400F] sm:mt-8">
               LAGOS
             </p>
             <blockquote className="mt-6 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">
@@ -82,18 +82,46 @@ export const MakeRoom = (): JSX.Element => {
             </div>
             <GivingProgress />
           </div>
-          <img
-            className="mt-12 block w-full"
-            alt="Petra auditorium building with international flags"
-            src="/images/petra%20aud.png"
-          />
         </header>
+        <section
+          className="w-full px-4 pt-16 sm:px-10 sm:pt-24"
+          aria-labelledby="vision-title"
+        >
+          <div className="mx-auto flex w-full max-w-[1100px] flex-col items-center lg:max-w-[1320px]">
+            <h2
+              id="vision-title"
+              className="text-center font-drum text-[clamp(2.5rem,6vw,5.625rem)] font-bold leading-none text-black"
+            >
+              THE VISION
+            </h2>
+            <div className="mt-8 flex w-full flex-col gap-4 sm:mt-12 sm:gap-6">
+              <img
+                className="block w-full rounded-2xl sm:rounded-3xl"
+                alt="Inside the new Petra Christian Centre: a 3,000-seat conference hall, children's ministry facilities and a media hub"
+                src="/images/vision-1.jpg"
+                width={1536}
+                height={1024}
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                className="block w-full rounded-2xl sm:rounded-3xl"
+                alt="Petra Place: the outside of the new Petra Christian Centre building"
+                src="/images/vision-2.jpg"
+                width={2000}
+                height={947}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+        </section>
         <section className="flex w-full flex-col items-center px-6 py-16 text-center sm:px-10 sm:py-24">
           <h2 className="font-drum text-[clamp(2.5rem,6vw,5.625rem)] font-bold leading-none tracking-[0] text-black">
             MAKE ROOM FOR
           </h2>
           <p
-            className={`mt-2 whitespace-nowrap font-drum font-bold leading-[0.9] tracking-[0] text-black transition-opacity duration-300 ${
+            className={`mt-2 whitespace-nowrap font-drum font-bold leading-[0.9] tracking-[0] text-[#FA400F] transition-opacity duration-300 ${
               isVisible ? "opacity-100" : "opacity-0"
             }`}
             style={{ fontSize: getLoopWordFontSize(loopWords[wordIndex]) }}
