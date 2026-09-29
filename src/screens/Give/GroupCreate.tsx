@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, X } from "lucide-react";
-import { dataStore, DEFAULT_CAMPAIGN_ID, type GivingTier } from "../../lib/giving";
-import { formatNaira } from "../../lib/giving/format";
+import { dataStore, DEFAULT_CAMPAIGN_ID, type Currency, type GivingTier } from "../../lib/giving";
+import { CURRENCY_SYMBOLS } from "../../lib/giving/currency";
+import { formatMoney } from "../../lib/giving/format";
 import { notifyGroupMembers } from "../../lib/giving/notifications";
 import { rememberEmail } from "../../lib/giving/rememberedDonor";
 import { TIERS } from "../../lib/giving/tiers";
@@ -12,10 +13,12 @@ import { BigAmount, StickyAction } from "./components/FlowParts";
 import {
   AmountStep,
   DetailsStep,
+  EMAIL_PATTERN,
   emptyDonorDetails,
+  isValidPhone,
   type DonorDetails,
 } from "./components/FlowSteps";
-import { PaymentPlanForm, type PaymentPlanFormResult } from "./components/PaymentPlanForm";
+import { emptySchedule, type ScheduleDraft, type ScheduleResult } from "./components/ScheduleFields";
 import {
   errorTextClass,
   inputClass,
@@ -28,7 +31,8 @@ interface MemberDraft {
   name: string;
   email: string;
   phone: string;
-  amountNaira: number;
+  // In the group's currency.
+  amount: number;
 }
 
 let draftKey = 0;
@@ -37,29 +41,34 @@ const newMember = (): MemberDraft => ({
   name: "",
   email: "",
   phone: "",
-  amountNaira: 0,
+  amount: 0,
 });
 
-function parseNairaInput(value: string): number {
+function parseAmountInput(value: string): number {
   return Number(value.replace(/[^\d]/g, "")) || 0;
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 // A group seed is one amount given together by several people.
-// Amount → your details → who's giving (and how much each) → when.
+// Amount and when → your details → who's giving (and how much each).
 // Everyone listed gets an email with their share; anyone can pay the total.
 export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element => {
   const tier = TIERS[tierId];
   const navigate = useNavigate();
-  const [step, goTo, back] = useFlowStep<"amount" | "details" | "members" | "payment">("amount");
-  const [totalNaira, setTotalNaira] = useState(0);
+  const [step, goTo, back] = useFlowStep<"amount" | "details" | "members">("amount");
+  const [total, setTotal] = useState(0);
+  const [currency, setCurrency] = useState<Currency>("NGN");
+  const [ngnRate, setNgnRate] = useState(1);
+  const money = (amount: number) => formatMoney(amount, currency);
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>(emptySchedule);
+  const [schedule, setSchedule] = useState<ScheduleResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [details, setDetails] = useState<DonorDetails>(emptyDonorDetails);
   const [organizerShare, setOrganizerShare] = useState(0);
   const [members, setMembers] = useState<MemberDraft[]>(() => [newMember()]);
   const [error, setError] = useState<string | null>(null);
 
-  const sharesTotal = organizerShare + members.reduce((sum, m) => sum + m.amountNaira, 0);
+  const sharesTotal = organizerShare + members.reduce((sum, m) => sum + m.amount, 0);
 
   function updateMember(key: string, patch: Partial<MemberDraft>) {
     setMembers((rows) => rows.map((m) => (m.key === key ? { ...m, ...patch } : m)));
@@ -67,13 +76,13 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
 
   function splitEvenly() {
     const people = members.length + 1;
-    const each = Math.floor(totalNaira / people);
+    const each = Math.floor(total / people);
     // Any remainder from rounding goes to the organiser.
-    setOrganizerShare(totalNaira - each * members.length);
-    setMembers((rows) => rows.map((m) => ({ ...m, amountNaira: each })));
+    setOrganizerShare(total - each * members.length);
+    setMembers((rows) => rows.map((m) => ({ ...m, amount: each })));
   }
 
-  function handleMembersContinue(e: React.FormEvent) {
+  async function handleMembersSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (members.length === 0) {
       setError("Add at least one other person, or give as an individual instead.");
@@ -89,84 +98,80 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
         setError(`Please check the email address for ${who}.`);
         return;
       }
+      if (!isValidPhone(m.phone)) {
+        setError(`Please check the phone number for ${who}.`);
+        return;
+      }
     }
-    if (organizerShare <= 0 || members.some((m) => m.amountNaira <= 0)) {
-      setError("Everyone needs an amount greater than ₦0.");
+    if (organizerShare <= 0 || members.some((m) => m.amount <= 0)) {
+      setError(`Everyone needs an amount greater than ${money(0)}.`);
       return;
     }
-    if (sharesTotal !== totalNaira) {
+    if (sharesTotal !== total) {
       setError(
-        `Everyone's amounts need to add up to ${formatNaira(totalNaira)}. They currently add up to ${formatNaira(sharesTotal)}.`,
+        `Everyone's amounts need to add up to ${money(total)}. They currently add up to ${money(sharesTotal)}.`,
       );
       return;
     }
+    if (!schedule) return;
     setError(null);
-    goTo("payment");
-  }
-
-  async function handlePaymentPlanSubmit(result: PaymentPlanFormResult) {
-    const { pledge } = await dataStore.createGroupPledge({
-      campaignId: DEFAULT_CAMPAIGN_ID,
-      tier: tier.id,
-      organizerName: details.name,
-      organizerEmail: details.email,
-      organizerPhone: details.phone,
-      organizerProfile: details.profile,
-      members: [
-        {
-          name: details.name,
-          email: details.email,
-          phone: details.phone,
-          amountNaira: organizerShare,
-        },
-        ...members.map((m) => ({
-          name: m.name.trim(),
-          email: m.email.trim(),
-          phone: m.phone.trim(),
-          amountNaira: m.amountNaira,
-        })),
-      ],
-      deadline: result.deadline,
-      paymentPlan: result.paymentPlan,
-      installments: result.installments,
-    });
-    rememberEmail(details.email);
-    notifyGroupMembers(pledge.id);
-    navigate(`/give/schedule/${pledge.id}`);
-  }
-
-  if (step === "payment") {
-    return (
-      <GiveShell title="When will your group give?" onBack={back}>
-        <PaymentPlanForm
-          totalAmountNaira={totalNaira}
-          amountLabel="Your group is giving"
-          onSubmit={handlePaymentPlanSubmit}
-          submitLabel="Confirm group seed"
-        />
-      </GiveShell>
-    );
+    setSubmitting(true);
+    try {
+      const { pledge } = await dataStore.createGroupPledge({
+        campaignId: DEFAULT_CAMPAIGN_ID,
+        tier: tier.id,
+        organizerName: details.name,
+        organizerEmail: details.email,
+        organizerPhone: details.phone,
+        organizerProfile: details.profile,
+        currency,
+        ngnRate,
+        members: [
+          {
+            name: details.name,
+            email: details.email,
+            phone: details.phone,
+            amount: organizerShare,
+          },
+          ...members.map((m) => ({
+            name: m.name.trim(),
+            email: m.email.trim(),
+            phone: m.phone.trim(),
+            amount: m.amount,
+          })),
+        ],
+        deadline: schedule.deadline,
+        paymentPlan: schedule.paymentPlan,
+        installments: schedule.installments,
+      });
+      rememberEmail(details.email);
+      notifyGroupMembers(pledge.id);
+      navigate(`/give/schedule/${pledge.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setSubmitting(false);
+    }
   }
 
   if (step === "members") {
-    const matches = sharesTotal === totalNaira;
+    const matches = sharesTotal === total;
     return (
       <GiveShell
         title="Who's giving?"
         subtitle="Add everyone giving with you and how much each person is covering. We'll email each person their amount."
         onBack={back}
       >
-        <form onSubmit={handleMembersContinue} className="flex flex-1 flex-col">
+        <form onSubmit={handleMembersSubmit} className="flex flex-1 flex-col">
           <p className="text-base text-slate-500">Your group's total</p>
           <div className="mt-2">
-            <BigAmount text={formatNaira(totalNaira)} />
+            <BigAmount text={money(total)} />
           </div>
 
           <div className="mt-6 flex items-center justify-between">
             <p
               className={`text-sm font-semibold ${matches ? "text-emerald-700" : "text-slate-500"}`}
             >
-              {formatNaira(sharesTotal)} of {formatNaira(totalNaira)} assigned
+              {money(sharesTotal)} of {money(total)} assigned
             </p>
             <button
               type="button"
@@ -182,7 +187,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
               <p className="text-sm text-slate-500">You · organiser</p>
               <p className="text-lg font-bold text-black">{details.name}</p>
               <label className={`${labelClass} mt-3`} htmlFor="organizer-amount">
-                Your amount (₦)
+                Your amount ({symbol})
               </label>
               <input
                 id="organizer-amount"
@@ -191,7 +196,7 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
                 placeholder="0"
                 className={`${inputClass} !bg-white`}
                 value={organizerShare ? organizerShare.toLocaleString("en-NG") : ""}
-                onChange={(e) => setOrganizerShare(parseNairaInput(e.target.value))}
+                onChange={(e) => setOrganizerShare(parseAmountInput(e.target.value))}
                 required
               />
             </div>
@@ -243,12 +248,12 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
                   <input
                     type="text"
                     inputMode="numeric"
-                    aria-label={`Person ${index + 2} amount in naira`}
-                    placeholder="Amount (₦)"
+                    aria-label={`Person ${index + 2} amount`}
+                    placeholder={`Amount (${symbol})`}
                     className={`${inputClass} !mt-0 !bg-white`}
-                    value={member.amountNaira ? member.amountNaira.toLocaleString("en-NG") : ""}
+                    value={member.amount ? member.amount.toLocaleString("en-NG") : ""}
                     onChange={(e) =>
-                      updateMember(member.key, { amountNaira: parseNairaInput(e.target.value) })
+                      updateMember(member.key, { amount: parseAmountInput(e.target.value) })
                     }
                     required
                   />
@@ -268,8 +273,8 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
           {error && <p className={errorTextClass}>{error}</p>}
 
           <StickyAction>
-            <button type="submit" className={primaryButtonClass}>
-              Continue
+            <button type="submit" className={primaryButtonClass} disabled={submitting}>
+              {submitting ? "Saving…" : "Confirm group seed"}
             </button>
           </StickyAction>
         </form>
@@ -294,15 +299,19 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
   return (
     <AmountStep
       title="Give as a group"
-      subtitle="One seed, given together. Enter the total your group is giving."
+      subtitle="One seed, given together. Enter the total your group is giving and when."
       tier={tier}
       label="Your group's total"
-      minNaira={tier.minNaira}
-      maxNaira={tier.maxNaira}
-      initialAmountNaira={totalNaira}
+      initialAmount={total}
+      initialCurrency={currency}
+      initialSchedule={scheduleDraft}
       backTo={`/give/${tier.slug}`}
-      onContinue={(amount) => {
-        setTotalNaira(amount);
+      onContinue={(result) => {
+        setTotal(result.amount);
+        setCurrency(result.currency);
+        setNgnRate(result.ngnRate);
+        setSchedule(result.schedule);
+        setScheduleDraft(result.draft);
         goTo("details");
       }}
     />

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowUpRight, Check, Copy, CreditCard, Globe, Landmark, Mail } from "lucide-react";
+import type { Currency } from "../../../lib/giving";
 import { DetailRow, Divider, pillButtonClass } from "./FlowParts";
 
 interface CopyField {
@@ -9,6 +10,7 @@ interface CopyField {
 
 interface OnlinePayment {
   label: string;
+  currencies: Currency[];
   description: string;
   href: string;
   icon: JSX.Element;
@@ -16,6 +18,7 @@ interface OnlinePayment {
 
 interface BankAccount {
   label: string;
+  accountCurrency: Currency;
   currency: string;
   fields: CopyField[];
 }
@@ -23,12 +26,14 @@ interface BankAccount {
 const onlinePayments: OnlinePayment[] = [
   {
     label: "Paystack",
+    currencies: ["NGN"],
     description: "Naira cards, bank transfer and USSD",
     href: "https://paystack.shop/pay/aami",
     icon: <CreditCard />,
   },
   {
     label: "Flutterwave",
+    currencies: ["USD", "GBP", "EUR"],
     description: "International cards",
     href: "https://www.flutterwave.com/pay/international-giving",
     icon: <Globe />,
@@ -38,6 +43,7 @@ const onlinePayments: OnlinePayment[] = [
 const bankAccounts: BankAccount[] = [
   {
     label: "GTBank",
+    accountCurrency: "NGN",
     currency: "Naira (₦)",
     fields: [
       { label: "Account Name", value: "PETRA CHRISTIAN CENTRE PROGRAM" },
@@ -47,6 +53,7 @@ const bankAccounts: BankAccount[] = [
   },
   {
     label: "Bank of America",
+    accountCurrency: "USD",
     currency: "USD ($)",
     fields: [
       { label: "Account Name", value: "Petra Christian Centre" },
@@ -61,7 +68,14 @@ const zelleEmail = "Finance@petracc.org";
 
 const sectionHeadingClass = "mb-1 text-sm text-slate-500";
 
-export const PaymentMethods = (): JSX.Element => {
+// Only the ways to pay that take the pledge's currency (see
+// PAYMENT_METHODS_BY_CURRENCY): naira via Paystack or GTBank; dollars via
+// Flutterwave, Bank of America or Zelle; pounds and euros via Flutterwave.
+export const PaymentMethods = ({ currency }: { currency: Currency }): JSX.Element => {
+  const online = onlinePayments.filter((p) => p.currencies.includes(currency));
+  const accounts = bankAccounts.filter((a) => a.accountCurrency === currency);
+  const showZelle = currency === "USD";
+
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   function copy(key: string, value: string) {
@@ -88,7 +102,7 @@ export const PaymentMethods = (): JSX.Element => {
     <div className="flex flex-col gap-8">
       <section>
         <h2 className={sectionHeadingClass}>Pay online</h2>
-        {onlinePayments.map((payment, idx) => (
+        {online.map((payment, idx) => (
           <div key={payment.href}>
             {idx > 0 && <Divider />}
             <DetailRow
@@ -110,41 +124,45 @@ export const PaymentMethods = (): JSX.Element => {
         ))}
       </section>
 
-      <section>
-        <h2 className={sectionHeadingClass}>Bank transfer</h2>
-        {bankAccounts.map((account, idx) => (
-          <div key={account.label}>
-            {idx > 0 && <Divider />}
-            <DetailRow icon={<Landmark />} label={account.currency} value={account.label} />
-            <dl className="ml-16 flex flex-col gap-3 pb-4">
-              {account.fields.map((field) => {
-                const key = `${account.label}-${field.label}`;
-                return (
-                  <div key={key} className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <dt className="text-xs text-slate-500">{field.label}</dt>
-                      <dd className="break-words text-base font-semibold text-black">
-                        {field.value}
-                      </dd>
+      {accounts.length > 0 && (
+        <section>
+          <h2 className={sectionHeadingClass}>Bank transfer</h2>
+          {accounts.map((account, idx) => (
+            <div key={account.label}>
+              {idx > 0 && <Divider />}
+              <DetailRow icon={<Landmark />} label={account.currency} value={account.label} />
+              <dl className="ml-16 flex flex-col gap-3 pb-4">
+                {account.fields.map((field) => {
+                  const key = `${account.label}-${field.label}`;
+                  return (
+                    <div key={key} className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <dt className="text-xs text-slate-500">{field.label}</dt>
+                        <dd className="break-words text-base font-semibold text-black">
+                          {field.value}
+                        </dd>
+                      </div>
+                      <CopyButton copyKey={key} value={field.value} label={field.label} />
                     </div>
-                    <CopyButton copyKey={key} value={field.value} label={field.label} />
-                  </div>
-                );
-              })}
-            </dl>
-          </div>
-        ))}
-      </section>
+                  );
+                })}
+              </dl>
+            </div>
+          ))}
+        </section>
+      )}
 
-      <section>
-        <h2 className={sectionHeadingClass}>Zelle</h2>
-        <DetailRow
-          icon={<Mail />}
-          label="USD ($) · Send to"
-          value={zelleEmail}
-          action={<CopyButton copyKey="zelle" value={zelleEmail} label="Zelle email" />}
-        />
-      </section>
+      {showZelle && (
+        <section>
+          <h2 className={sectionHeadingClass}>Zelle</h2>
+          <DetailRow
+            icon={<Mail />}
+            label="USD ($) · Send to"
+            value={zelleEmail}
+            action={<CopyButton copyKey="zelle" value={zelleEmail} label="Zelle email" />}
+          />
+        </section>
+      )}
     </div>
   );
 };

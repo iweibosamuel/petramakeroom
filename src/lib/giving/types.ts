@@ -2,6 +2,11 @@ export const UNIT_VALUE_NGN = 1_000_000;
 // Latest date anyone can schedule a payment for.
 export const LAST_DUE_DATE = "2026-12-21";
 
+// Currencies someone can give in. Amounts on a pledge are in its currency;
+// ngnRate converts them to naira for the campaign goal and tier limits.
+export const CURRENCIES = ["NGN", "USD", "GBP", "EUR"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
 export type PaymentPlanType = "full" | "installments";
 
 export type GivingTier = "burden_bearer" | "centurion";
@@ -32,6 +37,7 @@ export interface PaymentConfirmation {
 
 export interface Installment {
   id: string;
+  // In the pledge's currency.
   amount: number;
   dueDate: string;
   status: "pending" | "paid";
@@ -59,10 +65,17 @@ export interface Pledge {
   donorEmail: string;
   donorPhone?: string;
   donorProfile?: DonorProfile;
+  currency: Currency;
+  // Amount pledged, in `currency`.
+  amount: number;
+  // Naira value of 1 unit of `currency`, locked when the pledge was made.
+  ngnRate: number;
+  // Naira equivalents (amount × ngnRate), for the goal and tier limits.
   units: number;
   amountNaira: number;
   deadline: string;
   paymentPlan: PaymentPlan;
+  // Confirmed as paid so far, in `currency`.
   amountPaid: number;
   createdAt: string;
 }
@@ -89,7 +102,8 @@ export interface GroupMember {
   name: string;
   email: string;
   phone?: string;
-  committedAmountNaira: number;
+  // This person's share, in the group seed's currency.
+  committedAmount: number;
   isOrganizer: boolean;
   createdAt: string;
 }
@@ -104,6 +118,8 @@ export interface Campaign {
 export interface CampaignProgress {
   campaign: Campaign;
   pledgedNaira: number;
+  // Total confirmed as paid ("I've paid"), converted to naira.
   raisedNaira: number;
+  // People who have confirmed a payment, counted once each (see countGivers).
   contributorCount: number;
 }

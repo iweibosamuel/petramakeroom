@@ -1,5 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { supabase } from "../supabaseClient";
+import { countGivers } from "./progress";
 import type {
   CreatedGroupPledge,
   CreateGroupPledgeInput,
@@ -16,6 +17,12 @@ import type {
   PaymentConfirmation,
   Pledge,
 } from "./types";
+import { UNIT_VALUE_NGN } from "./types";
+
+// Naira equivalent of an amount in a pledge's currency.
+function toNaira(amount: number, ngnRate: number): number {
+  return Math.round(amount * ngnRate);
+}
 
 function requireClient() {
   if (!supabase) {
@@ -50,6 +57,9 @@ function mapPledgeRow(row: any, installments: Installment[]): Pledge {
     donorEmail: row.donor_email,
     donorPhone: row.donor_phone ?? undefined,
     donorProfile: mapProfile(row.location, row.is_petra_member, row.campus),
+    currency: row.currency ?? "NGN",
+    amount: Number(row.amount ?? row.amount_naira),
+    ngnRate: Number(row.ngn_rate ?? 1),
     units: Number(row.units),
     amountNaira: Number(row.amount_naira),
     deadline: row.deadline,
@@ -85,7 +95,8 @@ function mapGroupMemberRow(row: any): GroupMember {
     name: row.name,
     email: row.email,
     phone: row.phone ?? undefined,
-    committedAmountNaira: Number(row.committed_amount_naira),
+    // Column name predates currencies; the amount is in the seed's currency.
+    committedAmount: Number(row.committed_amount_naira),
     isOrganizer: Boolean(row.is_organizer),
     createdAt: row.created_at,
   };
@@ -149,16 +160,28 @@ export class SupabaseDataStore implements DataStore {
 
     const { data: pledgeRows, error: pledgeError } = await client
       .from("pledges")
-      .select("amount_naira, amount_paid")
+      .select("amount_naira, amount_paid, ngn_rate, kind, group_id, donor_email")
       .eq("campaign_id", campaignId);
     if (pledgeError) throw pledgeError;
+
+    const paidGroupIds = [
+      ...new Set(
+        (pledgeRows ?? [])
+          .filter((r: any) => r.kind === "group" && r.group_id && Number(r.amount_paid) > 0)
+          .map((r: any) => r.group_id as string),
+      ),
+    ];
+    const { data: memberRows, error: memberError } = paidGroupIds.length
+      ? await client.from("group_members").select("group_id, email").in("group_id", paidGroupIds)
+      : { data: [], error: null };
+    if (memberError) throw memberError;
 
     const pledgedNaira = (pledgeRows ?? []).reduce(
       (sum: number, r: any) => sum + Number(r.amount_naira),
       0,
     );
     const raisedNaira = (pledgeRows ?? []).reduce(
-      (sum: number, r: any) => sum + Number(r.amount_paid),
+      (sum: number, r: any) => sum + Number(r.amount_paid) * Number(r.ngn_rate ?? 1),
       0,
     );
 
@@ -166,7 +189,15 @@ export class SupabaseDataStore implements DataStore {
       campaign,
       pledgedNaira,
       raisedNaira,
-      contributorCount: pledgeRows?.length ?? 0,
+      contributorCount: countGivers(
+        (pledgeRows ?? []).map((r: any) => ({
+          kind: r.kind,
+          groupId: r.group_id ?? undefined,
+          donorEmail: r.donor_email,
+          amountPaid: Number(r.amount_paid),
+        })),
+        (memberRows ?? []).map((m: any) => ({ groupId: m.group_id, email: m.email })),
+      ),
     };
   }
 
@@ -188,8 +219,11 @@ export class SupabaseDataStore implements DataStore {
         location: input.donorProfile.location,
         is_petra_member: input.donorProfile.isPetraMember,
         campus: input.donorProfile.campus ?? null,
-        units: input.units,
-        amount_naira: Math.round(input.units * 1_000_000),
+        currency: input.currency,
+        amount: input.amount,
+        ngn_rate: input.ngnRate,
+        units: toNaira(input.amount, input.ngnRate) / UNIT_VALUE_NGN,
+        amount_naira: toNaira(input.amount, input.ngnRate),
         deadline: input.deadline,
         payment_plan_type: input.paymentPlan,
         amount_paid: 0,
@@ -290,7 +324,8 @@ export class SupabaseDataStore implements DataStore {
 
   async createGroupPledge(input: CreateGroupPledgeInput): Promise<CreatedGroupPledge> {
     const client = requireClient();
-    const totalNaira = input.members.reduce((sum, m) => sum + m.amountNaira, 0);
+    const total = input.members.reduce((sum, m) => sum + m.amount, 0);
+    const totalNaira = toNaira(total, input.ngnRate);
     const groupId = uuid();
 
     const { data: groupRow, error: groupError } = await client
@@ -305,7 +340,7 @@ export class SupabaseDataStore implements DataStore {
         organizer_location: input.organizerProfile.location,
         organizer_is_petra_member: input.organizerProfile.isPetraMember,
         organizer_campus: input.organizerProfile.campus ?? null,
-        total_units: totalNaira / 1_000_000,
+        total_units: totalNaira / UNIT_VALUE_NGN,
         deadline: input.deadline,
         // Required by the original schema; invite links are no longer used.
         invite_code: groupId.slice(0, 8).toUpperCase(),
@@ -323,7 +358,7 @@ export class SupabaseDataStore implements DataStore {
           name: m.name,
           email: m.email,
           phone: m.phone,
-          committed_amount_naira: m.amountNaira,
+          committed_amount_naira: m.amount,
           is_organizer: index === 0,
           status: "confirmed",
         })),
@@ -346,7 +381,10 @@ export class SupabaseDataStore implements DataStore {
         location: input.organizerProfile.location,
         is_petra_member: input.organizerProfile.isPetraMember,
         campus: input.organizerProfile.campus ?? null,
-        units: totalNaira / 1_000_000,
+        currency: input.currency,
+        amount: total,
+        ngn_rate: input.ngnRate,
+        units: totalNaira / UNIT_VALUE_NGN,
         amount_naira: totalNaira,
         deadline: input.deadline,
         payment_plan_type: input.paymentPlan,

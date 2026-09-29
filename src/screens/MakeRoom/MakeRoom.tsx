@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import { GivingProgress } from "./GivingProgress";
 
 
 const loopWords = ["MORE", "MULTITUDES", "NATIONS"];
@@ -52,15 +53,10 @@ export const MakeRoom = (): JSX.Element => {
               <span>MAKE</span>
               <span>ROOM</span>
             </h1>
-            <p className="mt-6 text-center text-[clamp(1.5rem,6.6vw,2.95rem)] font-bold leading-none tracking-[0] text-[#280084] sm:mt-8">
-              LAGOS X ABUJA
+            <p className="mt-6 text-center text-[clamp(3rem,13.2vw,5.9rem)] font-bold leading-none tracking-[0] text-[#280084] sm:mt-8">
+              LAGOS
             </p>
-            <blockquote className="mt-6 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">
-              <p>{scripture.text}</p>
-              <cite className="mt-[14px] block font-bold not-italic">
-                {scripture.reference}
-              </cite>
-            </blockquote>
+            <GivingProgress />
             <div className="mt-8 flex w-full max-w-[560px] flex-col gap-4">
               <Button
                 asChild
@@ -77,6 +73,12 @@ export const MakeRoom = (): JSX.Element => {
                 <Link to="/give/my">TRACK GIVING</Link>
               </Button>
             </div>
+            <blockquote className="mt-10 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">
+              <p>{scripture.text}</p>
+              <cite className="mt-[14px] block font-bold not-italic">
+                {scripture.reference}
+              </cite>
+            </blockquote>
           </div>
           <img
             className="mt-12 block w-full"

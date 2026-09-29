@@ -1,5 +1,6 @@
 import type {
   CampaignProgress,
+  Currency,
   DonorProfile,
   GivingTier,
   Group,
@@ -17,7 +18,11 @@ export interface CreateIndividualPledgeInput {
   donorEmail: string;
   donorPhone: string;
   donorProfile: DonorProfile;
-  units: number;
+  currency: Currency;
+  // In `currency`.
+  amount: number;
+  // Naira value of 1 unit of `currency` right now.
+  ngnRate: number;
   deadline: string;
   paymentPlan: PaymentPlanType;
   installments: Installment[];
@@ -27,7 +32,8 @@ export interface NewGroupMember {
   name: string;
   email: string;
   phone: string;
-  amountNaira: number;
+  // In the group seed's currency.
+  amount: number;
 }
 
 export interface CreateGroupPledgeInput {
@@ -37,6 +43,8 @@ export interface CreateGroupPledgeInput {
   organizerEmail: string;
   organizerPhone: string;
   organizerProfile: DonorProfile;
+  currency: Currency;
+  ngnRate: number;
   // Everyone giving, organiser first. Shares add up to the group's total.
   members: NewGroupMember[];
   deadline: string;

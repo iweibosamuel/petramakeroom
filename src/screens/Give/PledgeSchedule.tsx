@@ -7,7 +7,7 @@ import {
   type Installment,
   type Pledge,
 } from "../../lib/giving";
-import { formatDate, formatNaira, todayIso } from "../../lib/giving/format";
+import { formatDate, formatMoney, todayIso } from "../../lib/giving/format";
 import { PaymentMethods } from "./components/PaymentMethods";
 import { ConfirmPaymentSheet } from "./components/ConfirmPaymentSheet";
 import {
@@ -56,6 +56,7 @@ export const PledgeSchedule = (): JSX.Element => {
     );
   }
 
+  const money = (amount: number) => formatMoney(amount, pledge.currency);
   const { installments } = pledge.paymentPlan;
   const pending = installments
     .filter((i) => i.status !== "paid")
@@ -76,10 +77,10 @@ export const PledgeSchedule = (): JSX.Element => {
   const thanks = isGroup ? "Thank you for giving together." : `Thank you, ${pledge.donorName}.`;
   const subtitle = isFullyPaid
     ? isGroup
-      ? `We've recorded your group's seed of ${formatNaira(pledge.amountNaira)}. God bless you all.`
-      : `We've recorded your seed of ${formatNaira(pledge.amountNaira)}, ${pledge.donorName}. God bless you.`
+      ? `We've recorded your group's seed of ${money(pledge.amount)}. God bless you all.`
+      : `We've recorded your seed of ${money(pledge.amount)}, ${pledge.donorName}. God bless you.`
     : isGivingNow
-      ? `${thanks} ${isGroup ? "Anyone in the group can pay" : "Pay"} ${formatNaira(pledge.amountNaira)} using any of the options below, then tap “I've paid”.`
+      ? `${thanks} ${isGroup ? "Anyone in the group can pay" : "Pay"} ${money(pledge.amount)} using any of the options below, then tap “I've paid”.`
       : `${thanks} When a payment is due, ${isGroup ? "anyone in the group can pay" : "pay"} using any of the options below, then tap “I've paid”.`;
 
   return (
@@ -88,11 +89,11 @@ export const PledgeSchedule = (): JSX.Element => {
         {isFullyPaid ? "Total given" : isGivingNow ? "Amount to pay" : "Total pledged"}
       </p>
       <div className="mt-2">
-        <BigAmount text={formatNaira(pledge.amountNaira)} />
+        <BigAmount text={money(pledge.amount)} />
       </div>
       {!isFullyPaid && pledge.amountPaid > 0 && (
         <p className="mt-2 text-sm font-semibold text-emerald-700">
-          {formatNaira(pledge.amountPaid)} paid so far
+          {money(pledge.amountPaid)} paid so far
         </p>
       )}
 
@@ -114,7 +115,7 @@ export const PledgeSchedule = (): JSX.Element => {
                       ? "Due today"
                       : `Due ${formatDate(installment.dueDate)}`)
                 }
-                value={formatNaira(installment.amount)}
+                value={money(installment.amount)}
                 hint={isPaid && installment.paymentMethod ? `via ${installment.paymentMethod}` : undefined}
                 action={
                   isPaid ? (
@@ -156,7 +157,7 @@ export const PledgeSchedule = (): JSX.Element => {
                   )}
                 </span>
                 <span className="shrink-0 text-base font-bold text-black">
-                  {formatNaira(member.committedAmountNaira)}
+                  {money(member.committedAmount)}
                 </span>
               </li>
             ))}
@@ -167,7 +168,7 @@ export const PledgeSchedule = (): JSX.Element => {
       {!isFullyPaid && (
         <>
           <div className="mt-8">
-            <PaymentMethods />
+            <PaymentMethods currency={pledge.currency} />
           </div>
 
           <p className="mt-8 rounded-2xl bg-black/[0.05] p-4 text-sm text-slate-600">
@@ -185,7 +186,7 @@ export const PledgeSchedule = (): JSX.Element => {
             onClick={() => setConfirming(nextPending)}
             className={primaryButtonClass}
           >
-            I've paid {formatNaira(nextPending.amount)}
+            I've paid {money(nextPending.amount)}
           </button>
         </StickyAction>
       )}
@@ -194,6 +195,7 @@ export const PledgeSchedule = (): JSX.Element => {
         <ConfirmPaymentSheet
           pledgeId={pledge.id}
           installment={confirming}
+          currency={pledge.currency}
           onClose={() => setConfirming(null)}
           onConfirmed={() => {
             setConfirming(null);

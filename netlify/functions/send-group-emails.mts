@@ -8,7 +8,7 @@
 // created in the last 30 minutes, and Resend's idempotency key stops repeat
 // calls from sending twice. Environment variables: see ../lib/server.ts.
 
-import { formatDate, formatNaira } from "../lib/emailLayout";
+import { formatDate, formatMoney, type Currency } from "../lib/emailLayout";
 import { groupEmailSubject, renderGroupEmail, type GroupEmailPerson } from "../lib/groupEmail";
 import {
   TIERS,
@@ -40,7 +40,7 @@ export default withJsonErrors("send-group-emails", async (req: Request): Promise
 
   const rest = supabaseRest();
   const [pledge] = await rest(
-    `pledges?id=eq.${pledgeId}&kind=eq.group&select=id,tier,group_id,amount_naira,created_at`,
+    `pledges?id=eq.${pledgeId}&kind=eq.group&select=id,tier,group_id,currency,amount,created_at`,
   );
   if (!pledge) return json({ ok: false, error: "group seed not found" }, 404);
   if (Date.now() - new Date(pledge.created_at).getTime() > MAX_AGE_MS) {
@@ -57,18 +57,19 @@ export default withJsonErrors("send-group-emails", async (req: Request): Promise
   );
   if (!group || members.length === 0) return json({ ok: false, error: "group not found" }, 404);
 
+  const currency: Currency = pledge.currency ?? "NGN";
   const today = lagosToday();
   const whenText =
     installments.length === 1
       ? installments[0].due_date <= today
         ? "Today"
         : `By ${formatDate(installments[0].due_date)}`
-      : `${installments.length} installments · first ${formatNaira(Number(installments[0]?.amount ?? 0))} due ${formatDate(installments[0]?.due_date ?? today)}`;
+      : `${installments.length} installments · first ${formatMoney(Number(installments[0]?.amount ?? 0), currency)} due ${formatDate(installments[0]?.due_date ?? today)}`;
 
   const tier = TIERS[pledge.tier] ?? TIERS.burden_bearer;
   const everyone: GroupEmailPerson[] = members.map((m) => ({
     name: m.name,
-    amountNaira: Number(m.committed_amount_naira),
+    amount: Number(m.committed_amount_naira),
     isOrganizer: m.is_organizer,
   }));
 
@@ -77,7 +78,8 @@ export default withJsonErrors("send-group-emails", async (req: Request): Promise
       recipient: everyone[index],
       organizerName: group.organizer_name,
       everyone,
-      totalNaira: Number(pledge.amount_naira),
+      currency,
+      total: Number(pledge.amount),
       tierName: tier.name,
       tierColor: tier.color,
       whenText,

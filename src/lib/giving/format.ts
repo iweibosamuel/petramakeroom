@@ -1,9 +1,26 @@
-import { LAST_DUE_DATE, UNIT_VALUE_NGN } from "./types";
+import { LAST_DUE_DATE, UNIT_VALUE_NGN, type Currency } from "./types";
 
 export function formatNaira(amount: number): string {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+const MONEY_LOCALE: Record<Currency, string> = {
+  NGN: "en-NG",
+  USD: "en-US",
+  GBP: "en-GB",
+  EUR: "en-IE",
+};
+
+// Whole amounts in any giving currency: ₦50,000, $1,200, £900, €750.
+export function formatMoney(amount: number, currency: Currency): string {
+  return new Intl.NumberFormat(MONEY_LOCALE[currency], {
+    style: "currency",
+    currency,
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0,
   }).format(amount);
 }

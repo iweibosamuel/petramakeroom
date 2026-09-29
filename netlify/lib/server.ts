@@ -8,6 +8,7 @@
 //   URL                    set automatically by Netlify (the site's address)
 
 import { Resend, type CreateBatchOptions } from "resend";
+import type { Currency } from "./emailLayout";
 
 // Every system email comes from info@ with replies pointed at a no-reply
 // address, so givers can't reply to them. petramakeroom.com must be a
@@ -137,6 +138,9 @@ export interface PledgeRow {
   group_id: string | null;
   donor_name: string;
   donor_email: string;
+  // In `currency`; amount_naira is the naira equivalent.
+  currency: Currency;
+  amount: number;
   amount_naira: number;
   created_at: string;
   installments: InstallmentRow[];
@@ -153,7 +157,7 @@ export interface InstallmentRow {
 }
 
 export const PLEDGE_SELECT =
-  "id,kind,tier,group_id,donor_name,donor_email,amount_naira,created_at," +
+  "id,kind,tier,group_id,donor_name,donor_email,currency,amount,amount_naira,created_at," +
   "installments(id,amount,due_date,status,payment_method,payment_reference,paid_at)";
 
 export interface Recipient {
@@ -206,5 +210,5 @@ export function totals(pledge: PledgeRow) {
   const pending = pledge.installments
     .filter((i) => i.status !== "paid")
     .sort((a, b) => a.due_date.localeCompare(b.due_date));
-  return { paid, remaining: Number(pledge.amount_naira) - paid, pending };
+  return { paid, remaining: Number(pledge.amount) - paid, pending };
 }

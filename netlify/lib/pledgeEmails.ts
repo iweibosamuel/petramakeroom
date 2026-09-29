@@ -1,7 +1,7 @@
 // Payment confirmation and reminder emails for a pledge. Group seeds go to
 // everyone in the group, so wording says "your group seed" there.
 
-import { escapeHtml, formatDate, formatNaira, renderEmail, type EmailRow } from "./emailLayout";
+import { escapeHtml, formatDate, formatMoney, renderEmail, type EmailRow } from "./emailLayout";
 import {
   TIERS,
   logoUrl,
@@ -15,6 +15,10 @@ import {
 const PAY_NOTE =
   "Pay by Paystack, Flutterwave, bank transfer or Zelle — all on the seed page. After paying, tap <strong style=\"color:#000000;\">“I’ve paid”</strong> so we can record it.";
 
+function money(pledge: PledgeRow, amount: number): string {
+  return formatMoney(amount, pledge.currency);
+}
+
 function seedName(pledge: PledgeRow): string {
   return pledge.kind === "group" ? "your group seed" : "your seed";
 }
@@ -27,8 +31,8 @@ function badge(pledge: PledgeRow) {
 function progressRows(pledge: PledgeRow): EmailRow[] {
   const { paid, remaining } = totals(pledge);
   return [
-    { label: "Paid so far", value: `${formatNaira(paid)} of ${formatNaira(Number(pledge.amount_naira))}` },
-    ...(remaining > 0 ? [{ label: "Still to give", value: formatNaira(remaining) }] : []),
+    { label: "Paid so far", value: `${money(pledge, paid)} of ${money(pledge, Number(pledge.amount))}` },
+    ...(remaining > 0 ? [{ label: "Still to give", value: money(pledge, remaining) }] : []),
   ];
 }
 
@@ -41,14 +45,14 @@ export function paymentConfirmedEmail(
 ): { subject: string; html: string } {
   const { remaining, pending } = totals(pledge);
   const complete = remaining <= 0;
-  const amount = formatNaira(Number(installment.amount));
+  const amount = money(pledge, Number(installment.amount));
   const name = escapeHtml(recipient.name);
   const isGroup = pledge.kind === "group";
   const next = pending[0];
 
   const headline = complete ? "Your seed is complete" : "We've recorded your payment";
   const intro = complete
-    ? `Thank you, ${name}. With this payment of ${amount}, ${seedName(pledge)} of ${formatNaira(Number(pledge.amount_naira))} is fully given. God bless you${isGroup ? " all" : ""}.`
+    ? `Thank you, ${name}. With this payment of ${amount}, ${seedName(pledge)} of ${money(pledge, Number(pledge.amount))} is fully given. God bless you${isGroup ? " all" : ""}.`
     : `Thank you, ${name}. We've recorded a payment of ${amount} towards ${seedName(pledge)}. Our finance team will match it against our statements.`;
 
   const rows: EmailRow[] = [
@@ -61,7 +65,7 @@ export function paymentConfirmedEmail(
       : []),
     ...progressRows(pledge),
     ...(next
-      ? [{ label: "Next payment", value: `${formatNaira(Number(next.amount))} due ${formatDate(next.due_date)}` }]
+      ? [{ label: "Next payment", value: `${money(pledge, Number(next.amount))} due ${formatDate(next.due_date)}` }]
       : []),
   ];
 
@@ -72,12 +76,12 @@ export function paymentConfirmedEmail(
     html: renderEmail({
       title: headline,
       preheader: complete
-        ? `${pledge.kind === "group" ? "Your group seed" : "Your seed"} of ${formatNaira(Number(pledge.amount_naira))} is fully given.`
-        : `${amount} recorded. ${formatNaira(remaining)} still to give.`,
+        ? `${pledge.kind === "group" ? "Your group seed" : "Your seed"} of ${money(pledge, Number(pledge.amount))} is fully given.`
+        : `${amount} recorded. ${money(pledge, remaining)} still to give.`,
       headline,
       intro,
       amountLabel: complete ? "Total given" : "Payment recorded",
-      amount: complete ? formatNaira(Number(pledge.amount_naira)) : amount,
+      amount: complete ? money(pledge, Number(pledge.amount)) : amount,
       badge: badge(pledge),
       rows,
       button: { label: complete ? "View your seed" : "View your schedule", href: pledgeUrl(pledge.id) },
@@ -117,39 +121,39 @@ export function reminderEmail(
   if (kind === "overdue") {
     const oldest = outstanding[0];
     amount = outstandingTotal;
-    subject = `Reminder: ${formatNaira(amount)} for your Make Room seed is still open`;
+    subject = `Reminder: ${money(pledge, amount)} for your Make Room seed is still open`;
     headline = "A gentle reminder";
-    intro = `Hi ${name}, we haven't yet had confirmation of ${formatNaira(amount)} for ${seed}, which was due on ${formatDate(oldest.due_date)}.${anyone} If it's already paid, please tap “I’ve paid” on the seed page so we can record it.`;
+    intro = `Hi ${name}, we haven't yet had confirmation of ${money(pledge, amount)} for ${seed}, which was due on ${formatDate(oldest.due_date)}.${anyone} If it's already paid, please tap “I’ve paid” on the seed page so we can record it.`;
     amountLabel = "Waiting for confirmation";
   } else if (kind === "due") {
     amount = outstandingTotal;
-    subject = `Your ${formatNaira(amount)} Make Room payment is due today`;
+    subject = `Your ${money(pledge, amount)} Make Room payment is due today`;
     headline = "Your payment is due today";
-    intro = `Hi ${name}, a payment of ${formatNaira(amount)} for ${seed} is due today.${anyone}`;
+    intro = `Hi ${name}, a payment of ${money(pledge, amount)} for ${seed} is due today.${anyone}`;
     amountLabel = "Due today";
   } else {
     const next = upcoming!;
     amount = Number(next.amount);
-    subject = `Your ${formatNaira(amount)} Make Room payment is due on ${formatDate(next.due_date)}`;
+    subject = `Your ${money(pledge, amount)} Make Room payment is due on ${formatDate(next.due_date)}`;
     headline = "Your next payment is coming up";
-    intro = `Hi ${name}, a payment of ${formatNaira(amount)} for ${seed} is due on ${formatDate(next.due_date)}.${anyone}`;
+    intro = `Hi ${name}, a payment of ${money(pledge, amount)} for ${seed} is due on ${formatDate(next.due_date)}.${anyone}`;
     amountLabel = `Due ${formatDate(next.due_date)}`;
   }
 
   const scheduleRows: EmailRow[] = pending.map((i) => ({
     label: i.due_date < today ? `Was due ${formatDate(i.due_date)}` : i.due_date === today ? "Due today" : `Due ${formatDate(i.due_date)}`,
-    value: formatNaira(Number(i.amount)),
+    value: money(pledge, Number(i.amount)),
   }));
 
   return {
     subject,
     html: renderEmail({
       title: headline,
-      preheader: `${formatNaira(amount)} · ${amountLabel}`,
+      preheader: `${money(pledge, amount)} · ${amountLabel}`,
       headline,
       intro,
       amountLabel,
-      amount: formatNaira(amount),
+      amount: money(pledge, amount),
       badge: badge(pledge),
       rows: [...scheduleRows, ...progressRows(pledge)],
       button: { label: "Pay & confirm", href: pledgeUrl(pledge.id) },

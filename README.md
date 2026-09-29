@@ -38,8 +38,8 @@ through it. To go live with a real backend:
 
 1. Create a Supabase project, then run the files in `supabase/migrations/`
    in order (`0001_init.sql`, `0002_tiers_and_donor_profile.sql`,
-   `0003_payment_confirmation.sql`, `0004_fix_amount_paid.sql`, then
-   `0005_group_seeds.sql`)
+   `0003_payment_confirmation.sql`, `0004_fix_amount_paid.sql`,
+   `0005_group_seeds.sql`, then `0006_currencies.sql`)
    against it (SQL editor or `supabase db push`).
 2. Copy `.env.example` to `.env` and fill in `VITE_SUPABASE_URL` and
    `VITE_SUPABASE_ANON_KEY` from your project's API settings. The app

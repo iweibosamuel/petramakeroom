@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import {
   dataStore,
-  PAYMENT_METHODS,
+  type Currency,
   type Installment,
   type PaymentMethod,
 } from "../../../lib/giving";
-import { formatNaira } from "../../../lib/giving/format";
+import { PAYMENT_METHODS_BY_CURRENCY } from "../../../lib/giving/currency";
+import { formatMoney } from "../../../lib/giving/format";
 import { notifyPaymentConfirmed } from "../../../lib/giving/notifications";
 import { BigAmount } from "./FlowParts";
 import { errorTextClass, inputClass, labelClass, primaryButtonClass } from "./fieldStyles";
@@ -14,6 +15,7 @@ import { errorTextClass, inputClass, labelClass, primaryButtonClass } from "./fi
 interface ConfirmPaymentSheetProps {
   pledgeId: string;
   installment: Installment;
+  currency: Currency;
   onClose: () => void;
   onConfirmed: () => void;
 }
@@ -23,6 +25,7 @@ interface ConfirmPaymentSheetProps {
 export const ConfirmPaymentSheet = ({
   pledgeId,
   installment,
+  currency,
   onClose,
   onConfirmed,
 }: ConfirmPaymentSheetProps): JSX.Element => {
@@ -98,14 +101,14 @@ export const ConfirmPaymentSheet = ({
           <div>
             <p className="text-base text-slate-500">You paid</p>
             <div className="mt-2">
-              <BigAmount text={formatNaira(installment.amount)} />
+              <BigAmount text={formatMoney(installment.amount, currency)} />
             </div>
           </div>
 
           <fieldset>
             <legend className={labelClass}>How did you pay?</legend>
             <div className="mt-2 flex flex-wrap gap-2">
-              {PAYMENT_METHODS.map((option) => {
+              {PAYMENT_METHODS_BY_CURRENCY[currency].map((option) => {
                 const selected = method === option;
                 return (
                   <button

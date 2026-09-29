@@ -72,9 +72,15 @@ function pledgeRow(pledge: Pledge): Row {
     Email: pledge.donorEmail,
     Phone: pledge.donorPhone ?? "",
     ...profileColumns(pledge.donorProfile),
+    // ₦ columns are naira (converted at the pledge's locked rate for other
+    // currencies), so totals across the sheet stay comparable.
     "Amount (₦)": pledge.amountNaira,
-    "Paid (₦)": pledge.amountPaid,
-    "Balance (₦)": pledge.amountNaira - pledge.amountPaid,
+    "Paid (₦)": toNaira(pledge, pledge.amountPaid),
+    "Balance (₦)": pledge.amountNaira - toNaira(pledge, pledge.amountPaid),
+    Currency: pledge.currency,
+    "Amount (currency)": pledge.amount,
+    "Paid (currency)": pledge.amountPaid,
+    "Rate (₦ per 1)": pledge.ngnRate,
     Status: status,
     When: isGiveNow
       ? "Give now"
@@ -86,6 +92,10 @@ function pledgeRow(pledge: Pledge): Row {
   };
 }
 
+function toNaira(pledge: Pledge, amount: number): number {
+  return Math.round(amount * pledge.ngnRate);
+}
+
 function paymentRow(pledge: Pledge, installment: Installment): Row {
   return {
     "Payment ID": installment.id,
@@ -95,7 +105,9 @@ function paymentRow(pledge: Pledge, installment: Installment): Row {
     Name: pledge.donorName,
     Email: pledge.donorEmail,
     Phone: pledge.donorPhone ?? "",
-    "Amount (₦)": installment.amount,
+    "Amount (₦)": toNaira(pledge, installment.amount),
+    Currency: pledge.currency,
+    "Amount (currency)": installment.amount,
     "Due date": installment.dueDate,
     Method: installment.paymentMethod ?? "",
     Reference: installment.paymentReference ?? "",
@@ -129,8 +141,10 @@ function memberRow(member: GroupMember, group: Group, pledge: Pledge): Row {
     Name: member.name,
     Email: member.email,
     Phone: member.phone ?? "",
-    "Share (₦)": member.committedAmountNaira,
+    "Share (₦)": toNaira(pledge, member.committedAmount),
     "Group total (₦)": pledge.amountNaira,
+    Currency: pledge.currency,
+    "Share (currency)": member.committedAmount,
   };
 }
 

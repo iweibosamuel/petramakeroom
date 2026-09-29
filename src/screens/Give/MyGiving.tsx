@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import {
   dataStore,
+  type Currency,
   type Installment,
   type Pledge,
 } from "../../lib/giving";
 import { TIERS } from "../../lib/giving/tiers";
 import { ConfirmPaymentSheet } from "./components/ConfirmPaymentSheet";
-import { formatDate, formatNaira } from "../../lib/giving/format";
+import { formatDate, formatMoney } from "../../lib/giving/format";
 import {
   forgetRememberedEmail,
   getRememberedEmail,
@@ -27,6 +28,7 @@ export const MyGiving = (): JSX.Element => {
   const [confirming, setConfirming] = useState<{
     pledgeId: string;
     installment: Installment;
+    currency: Currency;
   } | null>(null);
 
   async function lookup(targetEmail: string) {
@@ -105,7 +107,7 @@ export const MyGiving = (): JSX.Element => {
                           {pledge.kind === "individual" ? "Individual" : "Group"}
                         </p>
                         <p className="text-lg font-bold text-black">
-                          {formatNaira(pledge.amountNaira)}
+                          {formatMoney(pledge.amount, pledge.currency)}
                         </p>
                       </div>
                       <ChevronRight className="h-5 w-5 shrink-0 text-black" />
@@ -117,13 +119,13 @@ export const MyGiving = (): JSX.Element => {
                         }`}
                       >
                         {nextPending
-                          ? `${formatNaira(pledge.amountPaid)} paid · next ${formatNaira(nextPending.amount)} due ${formatDate(nextPending.dueDate)}`
+                          ? `${formatMoney(pledge.amountPaid, pledge.currency)} paid · next ${formatMoney(nextPending.amount, pledge.currency)} due ${formatDate(nextPending.dueDate)}`
                           : "Fully paid — thank you"}
                       </p>
                       {nextPending && (
                         <button
                           type="button"
-                          onClick={() => setConfirming({ pledgeId: pledge.id, installment: nextPending })}
+                          onClick={() => setConfirming({ pledgeId: pledge.id, installment: nextPending, currency: pledge.currency })}
                           className="shrink-0 rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:bg-black/85"
                         >
                           I've paid
@@ -149,6 +151,7 @@ export const MyGiving = (): JSX.Element => {
           <ConfirmPaymentSheet
             pledgeId={confirming.pledgeId}
             installment={confirming.installment}
+            currency={confirming.currency}
             onClose={() => setConfirming(null)}
             onConfirmed={() => {
               setConfirming(null);

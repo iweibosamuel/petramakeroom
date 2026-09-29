@@ -14,8 +14,12 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-export function formatNaira(amount: number): string {
-  return `₦${Math.round(amount).toLocaleString("en-NG")}`;
+export type Currency = "NGN" | "USD" | "GBP" | "EUR";
+const SYMBOLS: Record<Currency, string> = { NGN: "₦", USD: "$", GBP: "£", EUR: "€" };
+
+// Whole amounts in a pledge's currency: ₦50,000, $1,200, £900, €750.
+export function formatMoney(amount: number, currency: Currency = "NGN"): string {
+  return `${SYMBOLS[currency] ?? SYMBOLS.NGN}${Math.round(amount).toLocaleString("en-NG")}`;
 }
 
 export function formatDate(iso: string): string {

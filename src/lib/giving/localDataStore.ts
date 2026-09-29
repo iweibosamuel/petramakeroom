@@ -13,6 +13,9 @@ import type {
   PaymentConfirmation,
   Pledge,
 } from "./types";
+import { UNIT_VALUE_NGN } from "./types";
+
+import { countGivers } from "./progress";
 
 const STORAGE_KEY = "petra_giving_db_v1";
 
@@ -49,6 +52,16 @@ function loadDb(): Db {
 
   const db = JSON.parse(raw) as Db;
 
+  // Records saved before currencies existed were all naira.
+  for (const pledge of db.pledges) {
+    pledge.currency ??= "NGN";
+    pledge.amount ??= pledge.amountNaira;
+    pledge.ngnRate ??= 1;
+  }
+  for (const member of db.groupMembers as Array<GroupMember & { committedAmountNaira?: number }>) {
+    member.committedAmount ??= member.committedAmountNaira ?? 0;
+  }
+
   // Keep the seeded campaign's static fields (goal, title, description) in
   // sync with the source of truth above, without wiping stored pledges/groups.
   const existingIdx = db.campaigns.findIndex((c) => c.id === seedCampaign.id);
@@ -84,10 +97,10 @@ export class LocalDataStore implements DataStore {
       0,
     );
     const raisedNaira = relevantPledges.reduce(
-      (sum, p) => sum + p.amountPaid,
+      (sum, p) => sum + p.amountPaid * p.ngnRate,
       0,
     );
-    const contributorCount = relevantPledges.length;
+    const contributorCount = countGivers(relevantPledges, db.groupMembers);
 
     return { campaign, pledgedNaira, raisedNaira, contributorCount };
   }
@@ -105,8 +118,11 @@ export class LocalDataStore implements DataStore {
       donorEmail: input.donorEmail,
       donorPhone: input.donorPhone,
       donorProfile: input.donorProfile,
-      units: input.units,
-      amountNaira: Math.round(input.units * 1_000_000),
+      currency: input.currency,
+      amount: input.amount,
+      ngnRate: input.ngnRate,
+      units: Math.round(input.amount * input.ngnRate) / UNIT_VALUE_NGN,
+      amountNaira: Math.round(input.amount * input.ngnRate),
       deadline: input.deadline,
       paymentPlan: { type: input.paymentPlan, installments: input.installments },
       amountPaid: 0,
@@ -162,7 +178,8 @@ export class LocalDataStore implements DataStore {
   async createGroupPledge(input: CreateGroupPledgeInput): Promise<CreatedGroupPledge> {
     const db = loadDb();
     const now = new Date().toISOString();
-    const totalNaira = input.members.reduce((sum, m) => sum + m.amountNaira, 0);
+    const total = input.members.reduce((sum, m) => sum + m.amount, 0);
+    const totalNaira = Math.round(total * input.ngnRate);
 
     const group: Group = {
       id: uuid(),
@@ -172,7 +189,7 @@ export class LocalDataStore implements DataStore {
       organizerEmail: input.organizerEmail,
       organizerPhone: input.organizerPhone,
       organizerProfile: input.organizerProfile,
-      totalUnits: totalNaira / 1_000_000,
+      totalUnits: totalNaira / UNIT_VALUE_NGN,
       deadline: input.deadline,
       createdAt: now,
     };
@@ -182,7 +199,7 @@ export class LocalDataStore implements DataStore {
       name: m.name,
       email: m.email,
       phone: m.phone,
-      committedAmountNaira: m.amountNaira,
+      committedAmount: m.amount,
       isOrganizer: index === 0,
       createdAt: now,
     }));
@@ -196,7 +213,10 @@ export class LocalDataStore implements DataStore {
       donorEmail: input.organizerEmail,
       donorPhone: input.organizerPhone,
       donorProfile: input.organizerProfile,
-      units: totalNaira / 1_000_000,
+      currency: input.currency,
+      amount: total,
+      ngnRate: input.ngnRate,
+      units: totalNaira / UNIT_VALUE_NGN,
       amountNaira: totalNaira,
       deadline: input.deadline,
       paymentPlan: { type: input.paymentPlan, installments: input.installments },
