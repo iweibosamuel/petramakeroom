@@ -9,7 +9,13 @@ type NotificationResult = {
   detail?: string;
 };
 
-function notify(path: string, label: string, payload: object): void {
+// Fire-and-forget, but retried once after a network error or server error
+// (e.g. a flaky mobile connection). Resend's idempotency key on the server
+// means a retry can never send the same email twice.
+function notify(path: string, label: string, payload: object, attempt = 1): void {
+  const retry = () => {
+    if (attempt < 2) setTimeout(() => notify(path, label, payload, attempt + 1), 2000);
+  };
   fetch(path, {
     method: "POST",
     keepalive: true,
@@ -18,6 +24,7 @@ function notify(path: string, label: string, payload: object): void {
   })
     .then(async (response) => {
       const result = (await response.json().catch(() => null)) as NotificationResult | null;
+      if (response.status >= 500) retry();
       if (!response.ok || !result || result.reason || result.error || result.sent === 0) {
         console.warn(
           `[notifications] ${label} email trigger returned ${response.status}`,
@@ -30,7 +37,10 @@ function notify(path: string, label: string, payload: object): void {
         console.info(`[notifications] ${label} email sent`, result.emailIds);
       }
     })
-    .catch((err) => console.warn(`[notifications] ${label} email trigger failed`, err));
+    .catch((err) => {
+      console.warn(`[notifications] ${label} email trigger failed`, err);
+      retry();
+    });
 }
 
 // Welcome email for an individual pledge. The server looks the pledge up

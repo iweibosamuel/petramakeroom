@@ -59,12 +59,13 @@ export default withJsonErrors("send-group-emails", async (req: Request): Promise
 
   const currency: Currency = pledge.currency ?? "NGN";
   const today = lagosToday();
-  const whenText =
-    installments.length === 1
-      ? installments[0].due_date <= today
-        ? "Today"
-        : `By ${formatDate(installments[0].due_date)}`
-      : `${installments.length} installments · first ${formatMoney(Number(installments[0]?.amount ?? 0), currency)} due ${formatDate(installments[0]?.due_date ?? today)}`;
+  // Every payment date the group chose, with its amount.
+  const schedule = installments.map((i, idx) => ({
+    label: `${installments.length > 1 ? `Payment ${idx + 1} · ` : ""}${
+      i.due_date <= today ? "Due today" : `Due ${formatDate(i.due_date)}`
+    }`,
+    amount: formatMoney(Number(i.amount), currency),
+  }));
 
   const tier = TIERS[pledge.tier] ?? TIERS.burden_bearer;
   const everyone: GroupEmailPerson[] = members.map((m) => ({
@@ -82,7 +83,7 @@ export default withJsonErrors("send-group-emails", async (req: Request): Promise
       total: Number(pledge.amount),
       tierName: tier.name,
       tierColor: tier.color,
-      whenText,
+      schedule,
       seedUrl: pledgeUrl(pledgeId as string),
       logoUrl: logoUrl(),
     };

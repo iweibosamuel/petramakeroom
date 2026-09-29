@@ -17,7 +17,8 @@ export interface GroupEmailInput {
   total: number;
   tierName: string;
   tierColor: string;
-  whenText: string;
+  // Each payment: "Due 12 Nov 2026" and its formatted amount.
+  schedule: Array<{ label: string; amount: string }>;
   seedUrl: string;
   logoUrl: string;
 }
@@ -67,7 +68,7 @@ export function renderGroupEmail(input: GroupEmailInput): string {
         ? { label: "Your part", value: formatMoney(input.recipient.amount, input.currency) }
         : { label: "Group total", value: formatMoney(input.total, input.currency) },
       ...(isOrganizer ? [] : [{ label: "Organised by", value: organizer }]),
-      { label: "When", value: escapeHtml(input.whenText) },
+      ...input.schedule.map((payment) => ({ label: payment.label, value: payment.amount })),
     ],
     extraHtml: isOrganizer
       ? `<p style="margin:0 0 4px 0; font-family:${FONT}; font-size:14px; color:#64748b;">Who's giving</p>
