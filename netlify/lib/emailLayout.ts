@@ -37,6 +37,9 @@ export interface EmailRow {
   value: string;
 }
 
+// Every email has a "Track giving" button under its main button.
+const TRACK_GIVING_URL = "https://petramakeroom.com/give";
+
 export interface EmailContent {
   title: string;
   preheader: string;
@@ -134,6 +137,11 @@ export function renderEmail(content: EmailContent): string {
               ? `<p style="margin:12px 0 0 0; font-family:${FONT}; font-size:14px; line-height:21px; color:#64748b; text-align:center;">${content.buttonNote}</p>`
               : ""
           }
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;"><tr>
+            <td align="center" style="border:2px solid #000000; border-radius:999px;">
+              <a href="${TRACK_GIVING_URL}" style="display:block; padding:14px 24px; font-family:${HEAVY}; font-size:14px; font-weight:900; color:#000000; text-decoration:none; border-radius:999px;">Track giving</a>
+            </td>
+          </tr></table>
         </td></tr>
 
         <tr><td align="center" class="px" style="padding:48px 32px 0 32px;">

@@ -51,13 +51,13 @@ export function withJsonErrors(
   };
 }
 
-// The live site. Email apps fetch images over the internet, so the logo
-// always comes from here — under `netlify dev` URL is localhost, which
-// nobody's inbox can reach.
+// The live site. Every link and image in an email points here, even when
+// sent from `netlify dev` (where URL is localhost, which nobody's inbox can
+// reach). Set SITE_URL only to point emails at a different live address.
 const PUBLIC_SITE_URL = "https://petramakeroom.com";
 
 export function siteUrl(): string {
-  return (process.env.SITE_URL || process.env.URL || PUBLIC_SITE_URL).replace(/\/$/, "");
+  return (process.env.SITE_URL || PUBLIC_SITE_URL).replace(/\/$/, "");
 }
 
 export function logoUrl(): string {
