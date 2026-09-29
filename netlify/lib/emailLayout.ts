@@ -138,7 +138,7 @@ export function renderEmail(content: EmailContent): string {
 
         <tr><td align="center" class="px" style="padding:48px 32px 0 32px;">
           <p style="margin:0; font-family:${HEAVY}; font-size:30px; line-height:0.95; font-weight:900; color:#000000;">MAKE<br />ROOM</p>
-          <p style="margin:10px 0 0 0; font-family:'Arial Black','Helvetica Neue',Arial,sans-serif; font-size:14px; font-weight:900; color:#280084; letter-spacing:0.04em;">LAGOS X ABUJA</p>
+          <p style="margin:10px 0 0 0; font-family:'Arial Black','Helvetica Neue',Arial,sans-serif; font-size:14px; font-weight:900; color:#280084; letter-spacing:0.04em;">LAGOS</p>
           <p style="margin:20px auto 0 auto; max-width:420px; font-family:${FONT}; font-size:13px; line-height:20px; color:#64748b; font-style:italic;">
             “Clear lots of ground for your tents! Make your tents large. Spread out! Think big!”
             <span style="font-style:normal; font-weight:700; color:#161b26;">Isaiah 54:2 MSG</span>

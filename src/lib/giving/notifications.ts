@@ -33,6 +33,12 @@ function notify(path: string, label: string, payload: object): void {
     .catch((err) => console.warn(`[notifications] ${label} email trigger failed`, err));
 }
 
+// Welcome email for an individual pledge. The server looks the pledge up
+// and only emails the giver saved on it.
+export function notifyPledgeCreated(pledgeId: string): void {
+  notify("/.netlify/functions/send-pledge-welcome", "welcome", { pledgeId });
+}
+
 // The server looks up the group itself and only emails its saved members.
 export function notifyGroupMembers(pledgeId: string): void {
   notify("/.netlify/functions/send-group-emails", "group", { pledgeId });

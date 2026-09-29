@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { dataStore, DEFAULT_CAMPAIGN_ID, type Currency, type GivingTier } from "../../lib/giving";
+import { notifyPledgeCreated } from "../../lib/giving/notifications";
 import { rememberEmail } from "../../lib/giving/rememberedDonor";
 import { TIERS } from "../../lib/giving/tiers";
 import { useFlowStep } from "./components/useFlowStep";
@@ -47,6 +48,7 @@ export const IndividualGive = ({ tier: tierId }: { tier: GivingTier }): JSX.Elem
         installments: schedule.installments,
       });
       rememberEmail(next.email);
+      notifyPledgeCreated(pledge.id);
       navigate(`/give/schedule/${pledge.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

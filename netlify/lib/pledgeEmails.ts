@@ -1,4 +1,4 @@
-// Payment confirmation and reminder emails for a pledge. Group seeds go to
+// Welcome, payment confirmation and reminder emails for a pledge. Group seeds go to
 // everyone in the group, so wording says "your group seed" there.
 
 import { escapeHtml, formatDate, formatMoney, renderEmail, type EmailRow } from "./emailLayout";
@@ -12,8 +12,18 @@ import {
   type Recipient,
 } from "./server";
 
-const PAY_NOTE =
-  "Pay by Paystack, Flutterwave, bank transfer or Zelle — all on the seed page. After paying, tap <strong style=\"color:#000000;\">“I’ve paid”</strong> so we can record it.";
+// How to pay, per currency (matches the seed page's options).
+const PAY_OPTIONS: Record<string, string> = {
+  NGN: "Paystack, Flutterwave or GTBank transfer",
+  USD: "Paystack, Flutterwave, GTBank, Bank of America or Zelle",
+  GBP: "Flutterwave or GTBank transfer",
+  EUR: "Flutterwave or GTBank transfer",
+};
+
+function payNote(pledge: PledgeRow): string {
+  const options = PAY_OPTIONS[pledge.currency] ?? PAY_OPTIONS.NGN;
+  return `Pay by ${options} — all on the seed page. After paying, tap <strong style="color:#000000;">“I’ve paid”</strong> so we can record it.`;
+}
 
 function money(pledge: PledgeRow, amount: number): string {
   return formatMoney(amount, pledge.currency);
@@ -34,6 +44,55 @@ function progressRows(pledge: PledgeRow): EmailRow[] {
     { label: "Paid so far", value: `${money(pledge, paid)} of ${money(pledge, Number(pledge.amount))}` },
     ...(remaining > 0 ? [{ label: "Still to give", value: money(pledge, remaining) }] : []),
   ];
+}
+
+// ─── Welcome, when someone makes a pledge ──────────────────────────────────
+
+export function welcomeEmail(
+  pledge: PledgeRow,
+  today: string,
+  recipient: Recipient,
+): { subject: string; html: string } {
+  const { pending } = totals(pledge);
+  const name = escapeHtml(recipient.name);
+  const total = money(pledge, Number(pledge.amount));
+  const payNow = pending.length > 0 && pending[0].due_date <= today;
+  const installments = pledge.installments.length > 1;
+
+  const headline = payNow ? "Complete your seed" : "You're in";
+  const intro = payNow
+    ? `Thank you for sowing into Make Room, ${name}. Pay ${money(pledge, Number(pending[0].amount))} using any of the options on your seed page, then tap “I’ve paid” so we can record it.`
+    : `Thank you for sowing into Make Room, ${name}. Here's your seed. We'll email you a reminder before each payment is due, and you can pay early any time.`;
+
+  const scheduleRows: EmailRow[] = pledge.installments
+    .slice()
+    .sort((a, b) => a.due_date.localeCompare(b.due_date))
+    .map((i, idx) => ({
+      label: `${installments ? `Payment ${idx + 1} · ` : ""}${i.due_date <= today ? "Due today" : `Due ${formatDate(i.due_date)}`}`,
+      value: money(pledge, Number(i.amount)),
+    }));
+
+  return {
+    subject: payNow
+      ? `Complete your ${total} Make Room seed`
+      : `You're in — your ${total} Make Room seed`,
+    html: renderEmail({
+      title: headline,
+      preheader: payNow
+        ? `Pay ${money(pledge, Number(pending[0].amount))} and tap “I’ve paid”.`
+        : `Your ${total} seed is set up. First payment due ${formatDate(pending[0]?.due_date ?? today)}.`,
+      headline,
+      intro,
+      amountLabel: "Your seed",
+      amount: total,
+      badge: badge(pledge),
+      rows: scheduleRows,
+      button: { label: payNow ? "Pay & confirm" : "View your seed", href: pledgeUrl(pledge.id) },
+      buttonNote: payNote(pledge),
+      footerReason: "You're receiving this because you made a Make Room seed.",
+      logoUrl: logoUrl(),
+    }),
+  };
 }
 
 // ─── "I've paid" confirmation ──────────────────────────────────────────────
@@ -157,7 +216,7 @@ export function reminderEmail(
       badge: badge(pledge),
       rows: [...scheduleRows, ...progressRows(pledge)],
       button: { label: "Pay & confirm", href: pledgeUrl(pledge.id) },
-      buttonNote: PAY_NOTE,
+      buttonNote: payNote(pledge),
       footerReason: `You're receiving this because ${pledge.kind === "group" ? "you're part of a Make Room group seed" : "you made a Make Room seed"} with payments still to confirm.`,
       logoUrl: logoUrl(),
     }),
