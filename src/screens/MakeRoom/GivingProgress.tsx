@@ -37,7 +37,6 @@ export const GivingProgress = (): JSX.Element | null => {
       Promise.all([dataStore.getCampaignProgress(DEFAULT_CAMPAIGN_ID), getNgnRatesOrLast()])
         .then(([result, rates]) => {
           if (cancelled) return;
-          if (!rates) throw new Error("No exchange rate to convert the goal");
           const goalNaira = CURRENT_PHASE.goalUsd * rates.USD;
           setProgress({
             percent: (result.raisedNaira / goalNaira) * 100,

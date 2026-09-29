@@ -187,7 +187,7 @@ export const PledgeSchedule = (): JSX.Element => {
               </>
             )}
             <Link to="/trackgiving" className="font-bold text-black underline">
-              Track your giving
+              Track giving
             </Link>{" "}
             with {isGroup ? "the email you were listed with" : pledge.donorEmail}.
           </p>

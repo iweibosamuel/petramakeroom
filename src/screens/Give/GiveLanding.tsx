@@ -140,7 +140,7 @@ export const GiveLanding = (): JSX.Element => {
         <p className="mt-10 text-center text-sm text-slate-500">
           Already filled the form?{" "}
           <Link to="/trackgiving" className="font-semibold text-black hover:underline">
-            Track your giving
+            Track giving
           </Link>
         </p>
       </div>

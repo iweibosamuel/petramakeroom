@@ -15,7 +15,7 @@ const getLoopWordFontSize = (word: string): string => {
 };
 
 const scripture = {
-  text: "“God says so! “Clear lots of ground for your tents! Make your tents large. Spread out! Think big! Use plenty of rope, drive the tent pegs deep. You’re going to need lots of elbow room for your growing family. You’re going to take over whole nations; you’re going to resettle abandoned cities. Don’t be afraid—you’re not going to be embarrassed. Don’t hold back—you’re not going to come up short.“",
+  text: "“God says so! Clear lots of ground for your tents! Make your tents large. Spread out! Think big! Use plenty of rope, drive the tent pegs deep. You’re going to need lots of elbow room for your growing family. You’re going to take over whole nations; you’re going to resettle abandoned cities. Don’t be afraid—you’re not going to be embarrassed. Don’t hold back—you’re not going to come up short.”",
   reference: "Isaiah 54:2-4 MSG",
 };
 

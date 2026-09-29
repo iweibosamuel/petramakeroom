@@ -1,7 +1,7 @@
 // Welcome, payment confirmation and reminder emails for a pledge. Group seeds go to
 // everyone in the group, so wording says "your group seed" there.
 
-import { escapeHtml, formatDate, formatMoney, renderEmail, type EmailRow } from "./emailLayout";
+import { escapeHtml, formatDate, formatMoney, payOptions, renderEmail, type EmailRow } from "./emailLayout";
 import {
   TIERS,
   logoUrl,
@@ -13,16 +13,8 @@ import {
 } from "./server";
 
 // How to pay, per currency (matches the seed page's options).
-const PAY_OPTIONS: Record<string, string> = {
-  NGN: "Paystack, Flutterwave or GTBank transfer",
-  USD: "Paystack, Flutterwave, GTBank, Bank of America or Zelle",
-  GBP: "Flutterwave or GTBank transfer",
-  EUR: "Flutterwave or GTBank transfer",
-};
-
 function payNote(pledge: PledgeRow): string {
-  const options = PAY_OPTIONS[pledge.currency] ?? PAY_OPTIONS.NGN;
-  return `Pay by ${options} — all on the seed page. After paying, tap <strong style="color:#000000;">“I’ve paid”</strong> so we can record it.`;
+  return `Pay by ${payOptions(pledge.currency)} — all on the seed page. After paying, tap <strong style="color:#000000;">“I’ve paid”</strong> so we can record it.`;
 }
 
 function money(pledge: PledgeRow, amount: number): string {

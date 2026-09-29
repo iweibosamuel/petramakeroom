@@ -40,18 +40,22 @@ let ratesPromise: Promise<NgnRates> | null = null;
 
 const LAST_RATES_KEY = "petra_ngn_rates_v1";
 
-// Today's rates, or the last ones this browser fetched if the rates service
-// is unreachable, so the progress bar still shows. Null if neither exists.
-export async function getNgnRatesOrLast(): Promise<NgnRates | null> {
+// Approximate rates (29 Sep 2026) used only if the rates service is down
+// and this browser has never fetched one, so the progress bar still shows.
+const BACKUP_NGN_RATES: NgnRates = { NGN: 1, USD: 1330, GBP: 1760, EUR: 1510 };
+
+// Today's rates, or the last ones this browser fetched, or the backup above.
+export async function getNgnRatesOrLast(): Promise<NgnRates> {
   try {
     return await getNgnRates();
   } catch {
     try {
       const saved = JSON.parse(localStorage.getItem(LAST_RATES_KEY) ?? "null");
-      return saved?.USD > 0 ? (saved as NgnRates) : null;
+      if (saved?.USD > 0) return saved as NgnRates;
     } catch {
-      return null;
+      // Fall through to the backup.
     }
+    return BACKUP_NGN_RATES;
   }
 }
 

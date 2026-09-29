@@ -15,6 +15,18 @@ export function escapeHtml(value: string): string {
 }
 
 export type Currency = "NGN" | "USD" | "GBP" | "EUR";
+
+// How to pay in each currency (matches the seed page's options).
+const PAY_OPTIONS: Record<Currency, string> = {
+  NGN: "Paystack, Flutterwave or GTBank transfer",
+  USD: "Paystack, Flutterwave, GTBank, Bank of America or Zelle",
+  GBP: "Flutterwave or GTBank transfer",
+  EUR: "Flutterwave or GTBank transfer",
+};
+
+export function payOptions(currency: Currency = "NGN"): string {
+  return PAY_OPTIONS[currency] ?? PAY_OPTIONS.NGN;
+}
 const SYMBOLS: Record<Currency, string> = { NGN: "₦", USD: "$", GBP: "£", EUR: "€" };
 
 // Whole amounts in a pledge's currency: ₦50,000, $1,200, £900, €750.

@@ -1,6 +1,6 @@
 // The "you're part of a group seed" email.
 
-import { FONT, escapeHtml, formatMoney, renderEmail, type Currency } from "./emailLayout";
+import { FONT, escapeHtml, formatMoney, payOptions, renderEmail, type Currency } from "./emailLayout";
 
 export interface GroupEmailPerson {
   name: string;
@@ -76,7 +76,7 @@ export function renderGroupEmail(input: GroupEmailInput): string {
       : undefined,
     button: { label: "View group seed & pay", href: input.seedUrl },
     buttonNote:
-      "Pay by Paystack, Flutterwave, bank transfer or Zelle — all on the seed page. Anyone in the group can pay the full amount; after paying, tap <strong style=\"color:#000000;\">“I’ve paid”</strong>.",
+      `Pay by ${payOptions(input.currency)} — all on the seed page. Anyone in the group can pay the full amount; after paying, tap <strong style="color:#000000;">“I’ve paid”</strong>.`,
     footerReason: `You're receiving this because ${isOrganizer ? "you set up" : `${organizer} listed you in`} a Make Room group seed.`,
     logoUrl: input.logoUrl,
   });
