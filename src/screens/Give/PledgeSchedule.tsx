@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { CalendarDays, CircleCheck, Zap } from "lucide-react";
 import {
   dataStore,
@@ -15,7 +15,6 @@ import {
   DetailRow,
   Divider,
   StickyAction,
-  pillButtonClass,
 } from "./components/FlowParts";
 import { primaryButtonClass } from "./components/fieldStyles";
 import { GiveShell } from "./components/GiveShell";
@@ -62,6 +61,9 @@ export const PledgeSchedule = (): JSX.Element => {
     .filter((i) => i.status !== "paid")
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   const nextPending = pending[0];
+  // "I've paid" only shows once a payment is due. Paying early is confirmed
+  // from Track giving instead.
+  const nextIsDue = Boolean(nextPending) && nextPending.dueDate <= todayIso();
   const isFullyPaid = pending.length === 0;
   const isGivingNow =
     installments.length === 1 && !isFullyPaid && installments[0].dueDate <= todayIso();
@@ -122,17 +124,7 @@ export const PledgeSchedule = (): JSX.Element => {
                     <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700">
                       Paid
                     </span>
-                  ) : isDueNow ? undefined : (
-                    // Payments due today are confirmed with the pinned
-                    // "I've paid" button, so the row doesn't repeat it.
-                    <button
-                      type="button"
-                      onClick={() => setConfirming(installment)}
-                      className={pillButtonClass}
-                    >
-                      I've paid
-                    </button>
-                  )
+                  ) : undefined
                 }
               />
             </div>
@@ -172,14 +164,26 @@ export const PledgeSchedule = (): JSX.Element => {
           </div>
 
           <p className="mt-8 rounded-2xl bg-black/[0.05] p-4 text-sm text-slate-600">
-            After paying, tap “I've paid” so we can record it, and keep your
-            receipt. You can also come back later through “Track your giving”
+            {nextIsDue ? (
+              <>
+                After paying, tap “I've paid” so we can record it, and keep your
+                receipt. You can also confirm it later in{" "}
+              </>
+            ) : (
+              <>
+                Your next payment is due {formatDate(nextPending.dueDate)}. We'll
+                remind you by email. Paying earlier? Confirm it any time in{" "}
+              </>
+            )}
+            <Link to="/give/my" className="font-bold text-black underline">
+              Track your giving
+            </Link>{" "}
             with {isGroup ? "the email you were listed with" : pledge.donorEmail}.
           </p>
         </>
       )}
 
-      {nextPending && (
+      {nextPending && nextIsDue && (
         <StickyAction>
           <button
             type="button"

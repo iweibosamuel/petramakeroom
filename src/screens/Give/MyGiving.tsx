@@ -112,26 +112,31 @@ export const MyGiving = (): JSX.Element => {
                       </div>
                       <ChevronRight className="h-5 w-5 shrink-0 text-black" />
                     </Link>
-                    <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-2">
-                      <p
-                        className={`text-sm font-semibold ${
-                          nextPending ? "text-slate-500" : "text-emerald-700"
-                        }`}
-                      >
-                        {nextPending
-                          ? `${formatMoney(pledge.amountPaid, pledge.currency)} paid · next ${formatMoney(nextPending.amount, pledge.currency)} due ${formatDate(nextPending.dueDate)}`
-                          : "Fully paid — thank you"}
-                      </p>
-                      {nextPending && (
+                    <p
+                      className={`px-4 pb-4 pt-2 text-sm font-semibold ${
+                        nextPending ? "text-slate-500" : "text-emerald-700"
+                      }`}
+                    >
+                      {nextPending
+                        ? `${formatMoney(pledge.amountPaid, pledge.currency)} paid · next ${formatMoney(nextPending.amount, pledge.currency)} due ${formatDate(nextPending.dueDate)}`
+                        : "Fully paid — thank you"}
+                    </p>
+                    {/* Always offered here, even before the due date, for
+                        anyone who pays early. */}
+                    {nextPending && (
+                      <div className="mx-4 mb-4 flex items-center justify-between gap-3 border-t border-black/10 pt-3">
+                        <p className="text-sm font-semibold text-black">
+                          Have you made this payment?
+                        </p>
                         <button
                           type="button"
                           onClick={() => setConfirming({ pledgeId: pledge.id, installment: nextPending, currency: pledge.currency })}
                           className="shrink-0 rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:bg-black/85"
                         >
-                          I've paid
+                          Yes, I've paid
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </li>
                 );
               })}
