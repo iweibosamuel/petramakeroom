@@ -97,7 +97,7 @@ export const MakeRoom = (): JSX.Element => {
             <div className="mt-8 flex w-full flex-col gap-4 sm:mt-12 sm:gap-6">
               <img
                 className="block w-full rounded-2xl sm:rounded-3xl"
-                alt="Inside the new Petra Christian Centre: a 3,000-seat conference hall, children's ministry facilities and a media hub"
+                alt="Inside the new Petra Christian Centre: a conference hall, children's ministry facilities and a media hub"
                 src="/images/vision-1.jpg"
                 width={1536}
                 height={1024}
