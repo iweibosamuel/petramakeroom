@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import { CURRENT_PHASE } from "../../lib/giving/phases";
 import { GivingProgress } from "./GivingProgress";
 
 
@@ -55,6 +56,9 @@ export const MakeRoom = (): JSX.Element => {
             </h1>
             <p className="mt-6 text-center text-[clamp(3rem,13.2vw,5.9rem)] font-bold leading-none tracking-[0] text-[#FA400F] sm:mt-8">
               LAGOS
+            </p>
+            <p className="mt-4 max-w-[900px] text-center font-drum text-[clamp(1.25rem,5vw,2.25rem)] font-bold uppercase leading-[1.1] text-black sm:mt-6">
+              {CURRENT_PHASE.title}
             </p>
             <blockquote className="mt-6 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">
               <p>{scripture.text}</p>

@@ -1,6 +1,4 @@
 export const UNIT_VALUE_NGN = 1_000_000;
-// Latest date anyone can schedule a payment for.
-export const LAST_DUE_DATE = "2026-12-21";
 
 // Currencies someone can give in. Amounts on a pledge are in its currency;
 // ngnRate converts them to naira for the campaign goal and tier limits.

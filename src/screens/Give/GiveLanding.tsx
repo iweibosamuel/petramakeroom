@@ -16,8 +16,8 @@ const tiers: GivingTier[] = [
     title: "Centurions",
     description: (
       <>
-        A hundred people giving <strong>₦10 million</strong> each clears the
-        entire budget for the project. Commit to this today.
+        140 people giving <strong>₦10 million</strong> each clears the entire
+        budget for the project. Commit to this today.
       </>
     ),
     image: "/images/centurion.png",

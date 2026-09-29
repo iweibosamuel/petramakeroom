@@ -9,7 +9,7 @@ import { optionCardClass } from "./FlowParts";
 // How and when someone will pay, chosen on the same page as the amount:
 // all at once (now, or on one date) or in installments (a date and amount
 // each). No date is pre-filled; every date is between today and
-// LAST_DUE_DATE.
+// the current phase's last day (maxDeadlineIso).
 
 export interface ScheduleResult {
   deadline: string;

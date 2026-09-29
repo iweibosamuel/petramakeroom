@@ -1,4 +1,5 @@
-import { LAST_DUE_DATE, UNIT_VALUE_NGN, type Currency } from "./types";
+import { CURRENT_PHASE } from "./phases";
+import { UNIT_VALUE_NGN, type Currency } from "./types";
 
 export function formatNaira(amount: number): string {
   return new Intl.NumberFormat("en-NG", {
@@ -49,9 +50,9 @@ export function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// The latest date a payment can be scheduled for (see LAST_DUE_DATE).
+// The latest date a payment can be scheduled for: the current phase's last day.
 export function maxDeadlineIso(): string {
-  return LAST_DUE_DATE;
+  return CURRENT_PHASE.endDate;
 }
 
 export function formatDate(iso: string): string {
