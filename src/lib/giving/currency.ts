@@ -38,6 +38,23 @@ export type NgnRates = Record<Currency, number>;
 const RATES_URL = "https://open.er-api.com/v6/latest/USD";
 let ratesPromise: Promise<NgnRates> | null = null;
 
+const LAST_RATES_KEY = "petra_ngn_rates_v1";
+
+// Today's rates, or the last ones this browser fetched if the rates service
+// is unreachable, so the progress bar still shows. Null if neither exists.
+export async function getNgnRatesOrLast(): Promise<NgnRates | null> {
+  try {
+    return await getNgnRates();
+  } catch {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAST_RATES_KEY) ?? "null");
+      return saved?.USD > 0 ? (saved as NgnRates) : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 export function getNgnRates(): Promise<NgnRates> {
   if (!ratesPromise) {
     ratesPromise = fetch(RATES_URL)
@@ -50,7 +67,13 @@ export function getNgnRates(): Promise<NgnRates> {
         if (data.result !== "success" || !r?.NGN || !r.GBP || !r.EUR) {
           throw new Error("Exchange rates unavailable");
         }
-        return { NGN: 1, USD: r.NGN, GBP: r.NGN / r.GBP, EUR: r.NGN / r.EUR };
+        const rates: NgnRates = { NGN: 1, USD: r.NGN, GBP: r.NGN / r.GBP, EUR: r.NGN / r.EUR };
+        try {
+          localStorage.setItem(LAST_RATES_KEY, JSON.stringify(rates));
+        } catch {
+          // Storage unavailable; the fallback just won't be there next time.
+        }
+        return rates;
       })
       .catch((err) => {
         ratesPromise = null;
