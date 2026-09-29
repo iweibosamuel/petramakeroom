@@ -56,12 +56,19 @@ export const MakeRoom = (): JSX.Element => {
             <p className="mt-6 text-center text-[clamp(3rem,13.2vw,5.9rem)] font-bold leading-none tracking-[0] text-[#280084] sm:mt-8">
               LAGOS
             </p>
-            <GivingProgress />
-            <div className="mt-8 flex w-full max-w-[560px] flex-col gap-4">
+            <blockquote className="mt-6 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">
+              <p>{scripture.text}</p>
+              <cite className="mt-[14px] block font-bold not-italic">
+                {scripture.reference}
+              </cite>
+            </blockquote>
+            {/* Stacked on phones (GIVE first); side by side at equal widths from
+                tablet up, with GIVE on the right. */}
+            <div className="mt-8 grid w-full max-w-[560px] grid-cols-1 gap-4 md:max-w-none md:grid-cols-2">
               <Button
                 asChild
                 variant="outline"
-                className="h-auto flex-1 rounded-full border-[3px] border-black bg-black px-8 py-5 font-drum text-[clamp(1.25rem,2.4vw,2.25rem)] font-bold leading-none text-white shadow-[0px_2.78px_5.57px_#1018280d] hover:bg-black/85 hover:text-white"
+                className="h-auto flex-1 rounded-full border-[3px] border-black bg-black px-8 md:order-last py-5 font-drum text-[clamp(1.25rem,2.4vw,2.25rem)] font-bold leading-none text-white shadow-[0px_2.78px_5.57px_#1018280d] hover:bg-black/85 hover:text-white"
               >
                 <Link to="/give">GIVE</Link>
               </Button>
@@ -73,12 +80,7 @@ export const MakeRoom = (): JSX.Element => {
                 <Link to="/give/my">TRACK GIVING</Link>
               </Button>
             </div>
-            <blockquote className="mt-10 max-w-[542px] text-center [font-family:'Inter',Helvetica] text-base leading-[22px] text-[#161b26]">
-              <p>{scripture.text}</p>
-              <cite className="mt-[14px] block font-bold not-italic">
-                {scripture.reference}
-              </cite>
-            </blockquote>
+            <GivingProgress />
           </div>
           <img
             className="mt-12 block w-full"

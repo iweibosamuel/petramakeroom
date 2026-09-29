@@ -26,31 +26,42 @@ interface BankAccount {
 const onlinePayments: OnlinePayment[] = [
   {
     label: "Paystack",
-    currencies: ["NGN"],
-    description: "Naira cards, bank transfer and USSD",
+    currencies: ["NGN", "USD"],
+    description: "Cards, bank transfer and USSD",
     href: "https://paystack.shop/pay/aami",
     icon: <CreditCard />,
   },
   {
     label: "Flutterwave",
-    currencies: ["USD", "GBP", "EUR"],
-    description: "International cards",
+    currencies: ["NGN", "USD", "GBP", "EUR"],
+    description: "Local and international cards",
     href: "https://www.flutterwave.com/pay/international-giving",
     icon: <Globe />,
   },
 ];
 
+// One GTBank current account per currency, plus Bank of America for dollars.
+const gtbank = (
+  accountCurrency: Currency,
+  currency: string,
+  accountName: string,
+  accountNumber: string,
+): BankAccount => ({
+  label: "GTBank",
+  accountCurrency,
+  currency,
+  fields: [
+    { label: "Account Name", value: accountName },
+    { label: "Account Number", value: accountNumber },
+    { label: "Transfer Description", value: "Make Room Giving" },
+  ],
+});
+
 const bankAccounts: BankAccount[] = [
-  {
-    label: "GTBank",
-    accountCurrency: "NGN",
-    currency: "Naira (₦)",
-    fields: [
-      { label: "Account Name", value: "PETRA CHRISTIAN CENTRE PROGRAM" },
-      { label: "Account Number", value: "0558726334" },
-      { label: "Transfer Description", value: "Make Room Giving" },
-    ],
-  },
+  gtbank("NGN", "Naira (₦)", "TRIBE PETRA/BUILDING PROJECT", "0619347919"),
+  gtbank("USD", "USD ($)", "PETRA CHRISTIAN CENTRE", "0798184826"),
+  gtbank("GBP", "GBP (£)", "PETRA CHRISTIAN CENTRE", "0945618875"),
+  gtbank("EUR", "EUR (€)", "PETRA CHRISTIAN CENTRE", "0945618882"),
   {
     label: "Bank of America",
     accountCurrency: "USD",
@@ -69,8 +80,9 @@ const zelleEmail = "Finance@petracc.org";
 const sectionHeadingClass = "mb-1 text-sm text-slate-500";
 
 // Only the ways to pay that take the pledge's currency (see
-// PAYMENT_METHODS_BY_CURRENCY): naira via Paystack or GTBank; dollars via
-// Flutterwave, Bank of America or Zelle; pounds and euros via Flutterwave.
+// PAYMENT_METHODS_BY_CURRENCY). Flutterwave and a GTBank account work for
+// every currency; Paystack for naira and dollars; Bank of America and Zelle
+// for dollars.
 export const PaymentMethods = ({ currency }: { currency: Currency }): JSX.Element => {
   const online = onlinePayments.filter((p) => p.currencies.includes(currency));
   const accounts = bankAccounts.filter((a) => a.accountCurrency === currency);

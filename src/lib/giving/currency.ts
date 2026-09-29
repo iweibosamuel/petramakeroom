@@ -14,20 +14,20 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   EUR: "€",
 };
 
-// Only the ways to pay that take this currency. Pounds and euros go through
-// Flutterwave's international card checkout; there are no GBP/EUR accounts.
+// Only the ways to pay that take this currency. Every currency has
+// Flutterwave and its own GTBank account.
 export const PAYMENT_METHODS_BY_CURRENCY: Record<Currency, PaymentMethod[]> = {
-  NGN: ["Paystack", "GTBank transfer"],
-  USD: ["Flutterwave", "Bank of America transfer", "Zelle"],
-  GBP: ["Flutterwave"],
-  EUR: ["Flutterwave"],
+  NGN: ["Paystack", "Flutterwave", "GTBank transfer"],
+  USD: ["Paystack", "Flutterwave", "GTBank transfer", "Bank of America transfer", "Zelle"],
+  GBP: ["Flutterwave", "GTBank transfer"],
+  EUR: ["Flutterwave", "GTBank transfer"],
 };
 
 export const PAYING_WITH_SUMMARY: Record<Currency, { value: string; hint: string }> = {
-  NGN: { value: "Card, transfer or USSD", hint: "Paystack or GTBank transfer" },
-  USD: { value: "Card, bank transfer or Zelle", hint: "Flutterwave, Bank of America or Zelle" },
-  GBP: { value: "Card", hint: "Flutterwave international checkout" },
-  EUR: { value: "Card", hint: "Flutterwave international checkout" },
+  NGN: { value: "Card, transfer or USSD", hint: "Paystack, Flutterwave or GTBank transfer" },
+  USD: { value: "Card, bank transfer or Zelle", hint: "Paystack, Flutterwave, GTBank, Bank of America or Zelle" },
+  GBP: { value: "Card or bank transfer", hint: "Flutterwave or GTBank transfer" },
+  EUR: { value: "Card or bank transfer", hint: "Flutterwave or GTBank transfer" },
 };
 
 export type NgnRates = Record<Currency, number>;
