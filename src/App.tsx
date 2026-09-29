@@ -1,11 +1,15 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { MakeRoom } from "./screens/MakeRoom";
 import { GiveLanding } from "./screens/Give/GiveLanding";
 import { IndividualGive } from "./screens/Give/IndividualGive";
 import { TierHome } from "./screens/Give/TierHome";
 import { GroupCreate } from "./screens/Give/GroupCreate";
 import { PledgeSchedule } from "./screens/Give/PledgeSchedule";
-import { MyGiving } from "./screens/Give/MyGiving";
+import { MyPledges, TrackGiving } from "./screens/Give/MyGiving";
+
+const OldPledgeLink = (): JSX.Element => (
+  <Navigate to={`/trackgiving/mypledge/${useParams().pledgeId}`} replace />
+);
 
 export const App = (): JSX.Element => {
   return (
@@ -42,8 +46,13 @@ export const App = (): JSX.Element => {
         />
         {/* Invite / join / confirm links from the old group flow. */}
         <Route path="/give/group/*" element={<Navigate to="/give" replace />} />
-        <Route path="/give/schedule/:pledgeId" element={<PledgeSchedule />} />
-        <Route path="/give/my" element={<MyGiving />} />
+        {/* Giving starts at /give; looking up existing pledges is /trackgiving. */}
+        <Route path="/trackgiving" element={<TrackGiving />} />
+        <Route path="/trackgiving/mypledge" element={<MyPledges />} />
+        <Route path="/trackgiving/mypledge/:pledgeId" element={<PledgeSchedule />} />
+        {/* Links in emails sent before pledge pages moved under Track giving. */}
+        <Route path="/give/schedule/:pledgeId" element={<OldPledgeLink />} />
+        <Route path="/give/my" element={<Navigate to="/trackgiving" replace />} />
       </Routes>
     </BrowserRouter>
   );

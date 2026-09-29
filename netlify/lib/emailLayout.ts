@@ -38,7 +38,7 @@ export interface EmailRow {
 }
 
 // Every email has a "Track giving" button under its main button.
-const TRACK_GIVING_URL = "https://petramakeroom.com/give";
+const TRACK_GIVING_URL = "https://petramakeroom.com/trackgiving";
 
 export interface EmailContent {
   title: string;

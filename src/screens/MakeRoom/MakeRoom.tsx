@@ -77,7 +77,7 @@ export const MakeRoom = (): JSX.Element => {
                 variant="outline"
                 className="h-auto flex-1 rounded-full border-[3px] border-black bg-transparent px-8 py-5 font-drum text-[clamp(1.25rem,2.4vw,2.25rem)] font-bold leading-none text-black shadow-[0px_2.78px_5.57px_#1018280d] hover:bg-black/5 hover:text-black"
               >
-                <Link to="/give/my">TRACK GIVING</Link>
+                <Link to="/trackgiving">TRACK GIVING</Link>
               </Button>
             </div>
             <GivingProgress />

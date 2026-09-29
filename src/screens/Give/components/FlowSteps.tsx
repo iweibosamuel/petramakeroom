@@ -50,6 +50,12 @@ interface AmountStepProps {
   initialSchedule: ScheduleDraft;
   backTo?: string;
   onBack?: () => void;
+  // A returning giver whose saved details will be used instead of the form.
+  givingAs?: { name: string; email: string };
+  onNotYou?: () => void;
+  submitLabel?: string;
+  submitting?: boolean;
+  externalError?: string | null;
   onContinue: (result: AmountStepResult) => void;
 }
 
@@ -66,6 +72,11 @@ export const AmountStep = ({
   initialSchedule,
   backTo,
   onBack,
+  givingAs,
+  onNotYou,
+  submitLabel = "Continue",
+  submitting = false,
+  externalError,
   onContinue,
 }: AmountStepProps): JSX.Element => {
   const [currency, setCurrency] = useState<Currency>(initialCurrency);
@@ -289,11 +300,31 @@ export const AmountStep = ({
           <Divider />
         </div>
 
-        {error && <p className={errorTextClass}>{error}</p>}
+        {givingAs && (
+          <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-black/[0.05] p-4">
+            <div className="min-w-0">
+              <p className="text-sm text-slate-500">Pledging as</p>
+              <p className="truncate text-base font-bold text-black">
+                {givingAs.name} · <span className="font-semibold text-slate-600">{givingAs.email}</span>
+              </p>
+            </div>
+            {onNotYou && (
+              <button
+                type="button"
+                onClick={onNotYou}
+                className="shrink-0 text-sm font-bold text-black underline hover:text-black/70"
+              >
+                Not you?
+              </button>
+            )}
+          </div>
+        )}
+
+        {(error ?? externalError) && <p className={errorTextClass}>{error ?? externalError}</p>}
 
         <StickyAction>
-          <button type="submit" className={primaryButtonClass} disabled={!canContinue}>
-            Continue
+          <button type="submit" className={primaryButtonClass} disabled={!canContinue || submitting}>
+            {submitting ? "Saving…" : submitLabel}
           </button>
         </StickyAction>
       </form>

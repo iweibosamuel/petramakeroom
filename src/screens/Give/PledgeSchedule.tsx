@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { CalendarDays, CircleCheck, Zap } from "lucide-react";
 import {
   dataStore,
@@ -18,9 +18,20 @@ import {
 } from "./components/FlowParts";
 import { primaryButtonClass } from "./components/fieldStyles";
 import { GiveShell } from "./components/GiveShell";
+import { TRACK_GIVING_PATH, type TrackGivingState } from "./MyGiving";
 
 export const PledgeSchedule = (): JSX.Element => {
   const { pledgeId } = useParams<{ pledgeId: string }>();
+  const navigate = useNavigate();
+  // Back depends on how the page was opened: from My pledges it returns to
+  // that list; straight after pledging it offers "Give again"; from an email
+  // link it goes to Track giving.
+  const openedFrom = useLocation().state as TrackGivingState | null;
+  const backProps = openedFrom?.trackGivingEmail
+    ? { onBack: () => navigate(-1), backLabel: "Back to my pledges" }
+    : openedFrom?.justPledged
+      ? { backTo: "/give", backLabel: "Give again" }
+      : { backTo: TRACK_GIVING_PATH, backLabel: "Track giving" };
   const [pledge, setPledge] = useState<Pledge | null | undefined>(undefined);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [confirming, setConfirming] = useState<Installment | null>(null);
@@ -47,7 +58,7 @@ export const PledgeSchedule = (): JSX.Element => {
 
   if (pledge === null) {
     return (
-      <GiveShell title="Pledge not found" backTo="/give">
+      <GiveShell title="Pledge not found" {...backProps}>
         <p className="text-slate-500">
           We couldn't find that pledge. It may have been an invalid link.
         </p>
@@ -86,7 +97,7 @@ export const PledgeSchedule = (): JSX.Element => {
       : `${thanks} When a payment is due, ${isGroup ? "anyone in the group can pay" : "pay"} using any of the options below, then tap “I've paid”.`;
 
   return (
-    <GiveShell title={title} subtitle={subtitle} backTo="/give" backLabel="Give again">
+    <GiveShell title={title} subtitle={subtitle} {...backProps}>
       <p className="text-base text-slate-500">
         {isFullyPaid ? "Total given" : isGivingNow ? "Amount to pay" : "Total pledged"}
       </p>
@@ -175,7 +186,7 @@ export const PledgeSchedule = (): JSX.Element => {
                 remind you by email. Paying earlier? Confirm it any time in{" "}
               </>
             )}
-            <Link to="/give/my" className="font-bold text-black underline">
+            <Link to="/trackgiving" className="font-bold text-black underline">
               Track your giving
             </Link>{" "}
             with {isGroup ? "the email you were listed with" : pledge.donorEmail}.

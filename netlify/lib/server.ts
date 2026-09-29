@@ -65,7 +65,7 @@ export function logoUrl(): string {
 }
 
 export function pledgeUrl(pledgeId: string): string {
-  return `${siteUrl()}/give/schedule/${pledgeId}`;
+  return `${siteUrl()}/trackgiving/mypledge/${pledgeId}`;
 }
 
 // Today's date (YYYY-MM-DD) in Lagos, where the campaign runs.

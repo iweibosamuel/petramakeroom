@@ -5,10 +5,15 @@ import { dataStore, DEFAULT_CAMPAIGN_ID, type Currency, type GivingTier } from "
 import { CURRENCY_SYMBOLS } from "../../lib/giving/currency";
 import { formatMoney } from "../../lib/giving/format";
 import { notifyGroupMembers } from "../../lib/giving/notifications";
-import { rememberEmail } from "../../lib/giving/rememberedDonor";
+import {
+  forgetDonorDetails,
+  getRememberedDonorDetails,
+  rememberDonorDetails,
+} from "../../lib/giving/rememberedDonor";
 import { TIERS } from "../../lib/giving/tiers";
 import { GiveShell } from "./components/GiveShell";
 import { useFlowStep } from "./components/useFlowStep";
+import { pledgePath, type TrackGivingState } from "./MyGiving";
 import { BigAmount, StickyAction } from "./components/FlowParts";
 import {
   AmountStep,
@@ -63,7 +68,9 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
   const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>(emptySchedule);
   const [schedule, setSchedule] = useState<ScheduleResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [details, setDetails] = useState<DonorDetails>(emptyDonorDetails);
+  // A returning organiser (details saved on this device) skips the form.
+  const [saved, setSaved] = useState(getRememberedDonorDetails);
+  const [details, setDetails] = useState<DonorDetails>(() => saved ?? emptyDonorDetails());
   const [organizerShare, setOrganizerShare] = useState(0);
   const [members, setMembers] = useState<MemberDraft[]>(() => [newMember()]);
   const [error, setError] = useState<string | null>(null);
@@ -144,9 +151,9 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
         paymentPlan: schedule.paymentPlan,
         installments: schedule.installments,
       });
-      rememberEmail(details.email);
+      rememberDonorDetails(details);
       notifyGroupMembers(pledge.id);
-      navigate(`/give/schedule/${pledge.id}`);
+      navigate(pledgePath(pledge.id), { state: { justPledged: true } satisfies TrackGivingState });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setSubmitting(false);
@@ -306,13 +313,24 @@ export const GroupCreate = ({ tier: tierId }: { tier: GivingTier }): JSX.Element
       initialCurrency={currency}
       initialSchedule={scheduleDraft}
       backTo={`/give/${tier.slug}`}
+      givingAs={saved ?? undefined}
+      onNotYou={() => {
+        forgetDonorDetails();
+        setSaved(null);
+        setDetails(emptyDonorDetails());
+      }}
       onContinue={(result) => {
         setTotal(result.amount);
         setCurrency(result.currency);
         setNgnRate(result.ngnRate);
         setSchedule(result.schedule);
         setScheduleDraft(result.draft);
-        goTo("details");
+        if (saved) {
+          setDetails(saved);
+          goTo("members");
+        } else {
+          goTo("details");
+        }
       }}
     />
   );
