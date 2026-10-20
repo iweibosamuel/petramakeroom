@@ -102,7 +102,7 @@ export function buildSchedule(
 // iPhone Safari otherwise shows a blank box. The date stays left-aligned, and
 // the box can shrink to fit its row (iPhone Safari would otherwise centre it
 // and refuse to get narrower). `compact` suits the narrow installment rows:
-// smaller text and no calendar icon.
+// no calendar icon. Text stays 16px so iPhone Safari doesn't zoom in on tap.
 const DateInput = ({
   value,
   compact = false,
@@ -113,7 +113,7 @@ const DateInput = ({
   compact?: boolean;
   wrapperClassName?: string;
 }): JSX.Element => (
-  <div className={`relative w-full min-w-0 ${wrapperClassName}`}>
+  <div className={`relative w-full min-w-0 max-w-full ${wrapperClassName}`}>
     <input
       {...props}
       type="date"
@@ -125,14 +125,14 @@ const DateInput = ({
           // Older browsers open the picker themselves.
         }
       }}
-      className={`${inputClass} !mt-0 ${compact ? "!px-3 text-sm" : "pr-11"} peer relative block min-w-0 cursor-pointer appearance-none py-0 text-left leading-[3.25rem] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:m-0 [&::-webkit-date-and-time-value]:text-left ${
+      className={`${inputClass} !mt-0 ${compact ? "!px-3" : "pr-11"} peer relative block min-w-0 max-w-full cursor-pointer appearance-none py-0 text-left leading-[3.25rem] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:m-0 [&::-webkit-date-and-time-value]:text-left ${
         value ? "" : "!text-transparent focus:!text-black"
       }`}
     />
     {!value && (
       <span
         className={`pointer-events-none absolute inset-y-0 flex items-center text-slate-400 peer-focus:hidden ${
-          compact ? "left-3 text-sm" : "left-4 text-base"
+          compact ? "left-3" : "left-4"
         }`}
       >
         {compact ? "Date" : "Choose a date"}
