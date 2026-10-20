@@ -1,5 +1,6 @@
+import type { InputHTMLAttributes } from "react";
 import { v4 as uuid } from "uuid";
-import { X } from "lucide-react";
+import { CalendarDays, X } from "lucide-react";
 import type { Currency, Installment, PaymentPlanType } from "../../../lib/giving";
 import { CURRENCY_SYMBOLS } from "../../../lib/giving/currency";
 import { formatDate, formatMoney, maxDeadlineIso, todayIso } from "../../../lib/giving/format";
@@ -95,6 +96,57 @@ export function buildSchedule(
   };
 }
 
+// A native date picker that behaves the same on every phone. Tapping anywhere
+// in the box opens the picker (the browser's calendar button is stretched,
+// invisibly, over the whole box). An empty box says "Choose a date", since
+// iPhone Safari otherwise shows a blank box. The date stays left-aligned, and
+// the box can shrink to fit its row (iPhone Safari would otherwise centre it
+// and refuse to get narrower). `compact` suits the narrow installment rows:
+// smaller text and no calendar icon.
+const DateInput = ({
+  value,
+  compact = false,
+  wrapperClassName = "",
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "className"> & {
+  value: string;
+  compact?: boolean;
+  wrapperClassName?: string;
+}): JSX.Element => (
+  <div className={`relative w-full min-w-0 ${wrapperClassName}`}>
+    <input
+      {...props}
+      type="date"
+      value={value}
+      onClick={(e) => {
+        try {
+          e.currentTarget.showPicker?.();
+        } catch {
+          // Older browsers open the picker themselves.
+        }
+      }}
+      className={`${inputClass} !mt-0 ${compact ? "!px-3 text-sm" : "pr-11"} peer relative block min-w-0 cursor-pointer appearance-none py-0 text-left leading-[3.25rem] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:m-0 [&::-webkit-date-and-time-value]:text-left ${
+        value ? "" : "!text-transparent focus:!text-black"
+      }`}
+    />
+    {!value && (
+      <span
+        className={`pointer-events-none absolute inset-y-0 flex items-center text-slate-400 peer-focus:hidden ${
+          compact ? "left-3 text-sm" : "left-4 text-base"
+        }`}
+      >
+        {compact ? "Date" : "Choose a date"}
+      </span>
+    )}
+    {!compact && (
+      <CalendarDays
+        className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500"
+        aria-hidden="true"
+      />
+    )}
+  </div>
+);
+
 interface ScheduleFieldsProps {
   // In `currency`.
   totalAmount: number;
@@ -184,10 +236,9 @@ export const ScheduleFields = ({
               Pay now
             </button>
           </div>
-          <input
+          <DateInput
             id="dueDate"
-            type="date"
-            className={inputClass}
+            wrapperClassName="mt-2"
             min={today}
             max={latest}
             value={dueDate}
@@ -225,10 +276,9 @@ export const ScheduleFields = ({
           <div className="flex flex-col gap-2">
             {installments.map((row, idx) => (
               <div key={row.key} className="flex items-center gap-2">
-                <input
-                  type="date"
+                <DateInput
                   aria-label={`Installment ${idx + 1} date`}
-                  className={`${inputClass} !mt-0 min-w-0 !px-3`}
+                  compact
                   min={today}
                   max={latest}
                   value={row.dueDate}
